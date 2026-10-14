@@ -1,4 +1,5 @@
-# Jinteia on Linux
+![Jinteia Proton Fix](assets/banner.png)
+
 
 Run **Nihor2 / Chronicles of Jinteia** on Linux with Lutris using a custom Proton build.
 
