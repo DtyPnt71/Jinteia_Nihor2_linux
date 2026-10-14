@@ -1,5 +1,8 @@
-![Jinteia Proton Fix](assets/banner.png)
+<p align="center">
+  <img src="banner.png" width="100%" alt="Jinteia Proton Fix">
+</p>
 
+# Jinteia / Nihor2 on Linux
 
 Run **Nihor2 / Chronicles of Jinteia** on Linux with Lutris using a custom Proton build.
 
@@ -12,11 +15,19 @@ This fix allows you running Metin2 (Jinteia) on Linux using a Wine environment.
 Check out the releases for more information!
 ---
 
-# Important
+### Important
 
 The Jinteia client executable itself is **not modified**.
 
 No Jinteia security checks are disabled or bypassed.
+
+### Disclaimer & Copyright
+
+All game files and logos belong to Jinteia / Nihor2.
+
+This is an independent community project and is **not yet officially supported or endorsed by Jinteia / Nihor2**.
+
+All rights to the original game and its content remain with their respective owners.
 
 </details>
 
@@ -35,7 +46,7 @@ No Jinteia security checks are disabled or bypassed.
 - Microsoft Edge WebView2 Runtime x64
 - Jinteia Patcher
 - Jinteia Client
-- Launching Jinteia through the patcher
+- Launching Jinteia through the patcher (not recommended)
 - Optional direct client launch using the same prefix
 
 ### Not yet fully verified
