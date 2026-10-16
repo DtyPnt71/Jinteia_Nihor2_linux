@@ -15,6 +15,19 @@ This fix allows you running Metin2 (Jinteia) on Linux using a Wine environment.
 Check out the releases for more information!
 ---
 
+***You want Discord recognize Jinteia / Nihor2?*** 
+
+Download Discord-RPC Bridge:
+
+https://github.com/enderice2/rpc-bridge/releases
+
+Unzip to your gamefolder -> Open Lutris and run "bridge.exe" as Wine-Prefix
+
+Click "Install" 
+
+Start Jinteia & enjoy!
+---
+
 ### Important
 
 The Jinteia client executable itself is **not modified**.
