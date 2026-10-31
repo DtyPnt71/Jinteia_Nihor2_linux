@@ -24,6 +24,8 @@ A local Jinteia-Proton-0.2 installation reported these SHA-256 values:
 - 32-bit `files/lib/wine/i386-windows/ntdll.dll`:
   `5239134a15e04f6052304042a857e929891cd0d1a392dfefa82b104ded3c8ab2`
 
+A subsequent **read-only hash check** of the installed backup file `ntdll.dll.jinteia-heap-test1.original` returned `ad0243384afa5fad82331dacfd7e45383b2a0c955fb8f99dd12e1cfd7d558438`, matching the recovered `ORIGINAL_SHA256`. This verifies the backup **bytes** for this installation. A successful restore operation has not been performed or tested here.
+
 The **64-bit** value exactly matches the recovered `heap/binary_patch.py` constant `PATCHED_SHA256`. Thus the on-disk 64-bit file matches the expected **Heap-Fix1+2 output**. This is a byte-level consistency check, **not** proof of performance, backup validity, or build reproducibility.
 
 The recovered heap patcher targets the **64-bit DLL only**. The 32-bit hash was recorded for reference; no positive inference about patch state is possible from this source.
