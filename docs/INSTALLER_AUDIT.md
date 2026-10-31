@@ -29,16 +29,24 @@ The maintainer ran the source-readable installer's read-only `--check` and recei
 
 - Recovered original setup regression suite: **16 tests passed locally**.
 - New bootstrap unit suite: **5 tests passed locally**.
-- Separate isolated test harness using mock download/runner/Heap-Fix: **4 tests passed locally**, including the new `--verify-release` mode. The integration test source is in the local review bundle, but is not yet part of this GitHub PR.
+- Separate isolated test harness using mock download/runner/Heap-Fix: **5 tests passed locally**, including both `--verify-release` and `--test-heap` modes; the integration test source is now checked into this PR.
 - Basic syntax and Python compilation checks passed.
 - The CI workflow runs the original setup and bootstrap unit suites in GitHub Actions. **A green CI result is not proof of a real installation**.
-- The exact full `540 MB` release asset extraction, Lutris integration, first-run/second-run behavior on a real system, real DLL patch/restore on a clean runner, and actual game launch are **not yet verified in this PR**.
+- The original v0.2 release asset SHA-256, nested runner archive and unpatched 64-bit DLL were checked successfully on CachyOS. Lutris integration, first-run/second-run behavior on a real system, real DLL patch/restore on a clean runner, and actual game launch are **not yet verified in this PR**.
 
-## One safe next check on the maintainer's CachyOS system
+## Release verification completed on CachyOS (2026-10-31)
 
-From a fresh clone of this draft branch, execute `bash install.sh --verify-release`. It downloads the published ~540 MB `.run`, checks the published SHA-256, extracts the nested runner archive into a temporary directory and compares the **original 64-bit DLL** against `ORIGINAL_SHA256`. It **does not** install the runner, touch Lutris, change a prefix or patch any DLL, and it deletes the temporary download after the check. A significant amount of free disk space is needed temporarily.
+The maintainer ran `bash install.sh --verify-release` on the actual public GitHub v0.2 release. The downloaded 515.4 MiB file was verified against the pinned release SHA-256. The nested Proton runner was extracted without executing its `.run` wrapper, and its original 64-bit `ntdll.dll` exactly matched `ORIGINAL_SHA256`.
 
-The full release payload was not downloaded in this environment; the check has so far passed only with synthetic offline test fixtures. Do not use the plain `bash install.sh` install action on the existing functioning Jinteia-Proton-0.2 runner.
+Observed success marker: `RELEASE VERIFIED: asset checksum, nested runner archive, and original 64-bit DLL match.`
+
+This result validates the release archive and original DLL **only**; it does not by itself verify the patch application, recovery, real Lutris installation, WebView2 or game launch.
+
+## Next safe test: real Heap-Fix apply/restore in a temporary directory
+
+The draft `bash install.sh --test-heap` mode verifies the release again, extracts the original runner to a private temporary directory, runs the recovered real Heap-Fix installer against that temporary DLL, verifies both patched DLL and original backup hashes, restores the original DLL byte-for-byte, then removes the temporary runner and download. It never invokes the Lutris setup helper and never targets the user's working runner or prefix. It requires at least **4 GiB free** in the temporary filesystem, such as `/tmp` or an alternative set by `TMPDIR`. It does write a temporary runner and patch that temporary copy; unlike `--verify-release`, it is **not read-only**.
+
+The `--test-heap` path has passed **simulated offline integration tests**, but **has not yet been performed against the real release DLL**.
 
 ## Release gates
 
