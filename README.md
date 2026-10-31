@@ -7,10 +7,12 @@
 > **New terminal UI (review branch):** preview the installer without making changes:
 
 ```bash
-bash install.sh --demo
+bash install.sh --demo --lang de  # Deutsch
+bash install.sh --demo --lang en  # English
+bash install.sh --simulate-install --lang de  # Echter Test im temporären Ordner
 ```
 
-Native Lutris setup, a clearer progress display, log files and optional Microsoft WebView2 x64 download are documented in [Installer UI](docs/INSTALLER_UI.md). **This is not yet a published release.**
+The redesigned installer offers **Deutsch / English at startup** (or `--lang de` / `--lang en`). Native Lutris setup, stage progress, logs and optional Microsoft WebView2 x64 download are documented in [Installer UI](docs/INSTALLER_UI.md). **This is not yet a published release.**
 
 > **Under review: source-readable installer** — see [instructions and test status](docs/SOURCE_INSTALLER_PREVIEW.md). This feature branch has passed native CachyOS installation and repeat-install protection tests, but the new-user game launch and WebView2 setup are not verified. The published v0.2 release is unchanged.
 

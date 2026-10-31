@@ -9,7 +9,7 @@ umask 077
 # non-interactive callers retain the tested core behavior.
 if [[ "${JINTEIA_UI_INTERNAL:-0}" != 1 ]]; then
   case "${1:-}" in
-    --demo|--webview2-only)
+    --demo|--simulate-install|--webview2-only|--lang|--language)
       exec bash "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/scripts/installer-ui.sh" "$@" ;;
   esac
   if [[ -t 0 && -t 1 ]]; then
@@ -47,7 +47,10 @@ Usage:
   bash install.sh --heap-only     Apply the matching Heap Fix to existing runner
   bash install.sh --runner PATH   Choose the installed runner for Heap Fix explicitly
   bash install.sh --mode MODE     Native Lutris recommended; Flatpak not supported by the UI
-  bash install.sh --demo          UI preview without downloads or changes
+  bash install.sh --demo          Bilingual UI preview without downloads or changes
+  bash install.sh --simulate-install  Real temporary runner + Heap Fix test (no Lutris changes)
+  bash install.sh --lang de       Start in German / Deutsch
+  bash install.sh --lang en       Start in English
   bash install.sh --webview2-only Optional official Microsoft x64 download
   bash install.sh --help
 
@@ -152,6 +155,11 @@ if [[ "$ACTION" == test-heap ]]; then
 fi
 
 download="$TMP/$ASSET"
+# The terminal UI may observe download bytes via a private path-file. It never
+# reads release content or supplies the target path used for installation.
+if [[ -n "${JINTEIA_PROGRESS_PATH_FILE:-}" ]]; then
+  printf '%s\n' "$download" > "$JINTEIA_PROGRESS_PATH_FILE"
+fi
 say 'Downloading v0.2 release package (~540 MB)'
 if command -v curl >/dev/null 2>&1; then
   curl --fail --location --retry 2 --proto '=https' --proto-redir '=https' --tlsv1.2 --output "$download" "$URL"
