@@ -179,11 +179,11 @@ brand() {
   [[ "$cols" =~ ^[0-9]+$ ]] || cols=80
   printf '\n'
   if (( cols >= 78 )); then
-    printf '  %s%s%s%s%s\n' "$GOLD" ' ███ ████ █  █ ████ ████ ████  ██ ' "$RESET" "$ACCENT" '     ███  ███   ██  ████  ██  █  █'
-    printf '  %s%s%s%s%s\n' "$GOLD" '   █  ██  ██ █  ██  █     ██  █  █' "$RESET" "$ACCENT" '     █  █ █  █ █  █  ██  █  █ ██ █'
-    printf '  %s%s%s%s%s\n' "$GOLD" '   █  ██  █ ██  ██  ███   ██  ████' "$RESET" "$ACCENT" '████ ███  ███  █  █  ██  █  █ █ ██'
-    printf '  %s%s%s%s%s\n' "$GOLD" '█  █  ██  █  █  ██  █     ██  █  █' "$RESET" "$ACCENT" '     █    █  █ █  █  ██  █  █ █  █'
-    printf '  %s%s%s%s%s\n' "$GOLD" ' ██  ████ █  █  ██  ████ ████ █  █' "$RESET" "$ACCENT" '     █    █  █  ██   ██   ██  █  █'
+    printf '  %s%s%s%s%s%s\n' "$GOLD" ' ███ ████ █  █ ████ ████ ████  ██ ' "$RESET" "$ACCENT" '     ███  ███   ██  ████  ██  █  █' "$RESET"
+    printf '  %s%s%s%s%s%s\n' "$GOLD" '   █  ██  ██ █  ██  █     ██  █  █' "$RESET" "$ACCENT" '     █  █ █  █ █  █  ██  █  █ ██ █' "$RESET"
+    printf '  %s%s%s%s%s%s\n' "$GOLD" '   █  ██  █ ██  ██  ███   ██  ████' "$RESET" "$ACCENT" '████ ███  ███  █  █  ██  █  █ █ ██' "$RESET"
+    printf '  %s%s%s%s%s%s\n' "$GOLD" '█  █  ██  █  █  ██  █     ██  █  █' "$RESET" "$ACCENT" '     █    █  █ █  █  ██  █  █ █  █' "$RESET"
+    printf '  %s%s%s%s%s%s\n' "$GOLD" ' ██  ████ █  █  ██  ████ ████ █  █' "$RESET" "$ACCENT" '     █    █  █  ██   ██   ██  █  █' "$RESET"
   else
     printf '  %s%sJINTEIA%s%s-PROTON%s\n' "$GOLD" "$BOLD" "$RESET" "$ACCENT" "$RESET"
   fi
