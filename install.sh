@@ -46,7 +46,9 @@ Usage:
   bash install.sh --test-heap     Isolated test: patch, verify and restore in a temporary directory
   bash install.sh --heap-only     Apply the matching Heap Fix to existing runner
   bash install.sh --runner PATH   Choose the installed runner for Heap Fix explicitly
-  bash install.sh --mode MODE     Use auto, native, or flatpak Lutris selection
+  bash install.sh --mode MODE     Native Lutris recommended; Flatpak not supported by the UI
+  bash install.sh --demo          UI preview without downloads or changes
+  bash install.sh --webview2-only Optional official Microsoft x64 download
   bash install.sh --help
 
 Requires the game and Lutris to be closed. Never run with sudo.
