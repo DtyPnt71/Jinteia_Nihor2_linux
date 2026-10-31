@@ -275,5 +275,71 @@ echo '==> ISOLATED HEAP TEST PASSED'
                 os.close(master)
 
 
+    def test_download_rate_is_measured_from_written_bytes(self):
+        """The UI must report real byte deltas, not a hardcoded speed."""
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            (root / 'scripts').mkdir()
+            (root / 'tmp').mkdir()
+            (root / 'scripts/installer-ui.sh').write_bytes(UI.read_bytes())
+            (root / 'install.sh').write_text("""#!/usr/bin/env bash
+[[ "$1" == '--test-heap' ]] || exit 44
+dir="$(mktemp -d)"
+trap 'rm -rf -- "$dir"' EXIT
+path="$dir/release.run"
+: > "$path"
+printf '%s\n' "$path" > "$JINTEIA_PROGRESS_PATH_FILE"
+echo '==> Downloading v0.2 release package'
+for n in 1 2 3 4 5; do
+  head -c 524288 /dev/zero >> "$path"
+  sleep 0.48
+done
+echo '==> Verifying published SHA-256'
+echo '==> Extracting verified runner payload'
+echo '==> Extracting released runner into private temporary test area'
+echo '==> Applying real Heap-Fix1+2 to the isolated test DLL'
+echo '==> Heap Fix installed with expected patch and backup hashes; testing restore'
+echo '==> ISOLATED HEAP TEST PASSED'
+""")
+            env = {**os.environ, 'HOME': str(root),
+                   'TMPDIR': str(root / 'tmp'),
+                   'XDG_STATE_HOME': str(root / 'state'),
+                   'NO_COLOR': '1', 'TERM': 'xterm'}
+            master, slave = pty.openpty()
+            p = subprocess.Popen(
+                ['bash', str(root / 'scripts/installer-ui.sh'),
+                 '--simulate-install', '--lang', 'en'],
+                env=env, stdin=slave, stdout=slave, stderr=slave,
+                start_new_session=True)
+            os.close(slave)
+            output = bytearray()
+            try:
+                deadline = time.monotonic() + 15
+                sent = False
+                while time.monotonic() < deadline:
+                    ready, _, _ = select.select([master], [], [], 0.15)
+                    if ready:
+                        try:
+                            output.extend(os.read(master, 65536))
+                        except OSError:
+                            pass
+                    if not sent and b'[y/N]' in output:
+                        os.write(master, b'y\n')
+                        sent = True
+                    if p.poll() is not None:
+                        break
+                self.assertIsNotNone(p.poll(), output.decode(errors='replace'))
+                self.assertEqual(p.returncode, 0, output.decode(errors='replace'))
+                out = output.decode(errors='replace')
+                self.assertIn('MiB', out)
+                self.assertTrue('KiB/s' in out or 'MiB/s' in out, out)
+                self.assertEqual(list((root / 'tmp').glob('jinteia-speed.*')), [])
+            finally:
+                if p.poll() is None:
+                    p.kill()
+                p.wait(timeout=5)
+                os.close(master)
+
+
 if __name__ == '__main__':
     unittest.main()
