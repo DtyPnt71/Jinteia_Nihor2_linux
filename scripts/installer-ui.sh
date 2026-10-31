@@ -148,16 +148,16 @@ choose_language() {
     case "${LC_ALL:-${LC_MESSAGES:-${LANG:-de}}}" in de*) LANG_CHOICE=de ;; *) LANG_CHOICE=en ;; esac
   fi
 }
-choose_language
-
 line() { printf '  %s────────────────────────────────────────────────────────%s\n' "$DIM" "$RESET"; }
 brand() {
   printf '\n'
   printf '  %s▌%s  %s%sJINTEIA%s  %sPROTON%s\n' "$ACCENT" "$RESET" "$BOLD" "$ACCENT" "$RESET" "$BOLD" "$RESET"
   printf '  %s   by DtyPnt71 / Burarion%s\n' "$DIM" "$RESET"
   line
-  printf '  %s%s%s  /  v0.2  /  %s\n\n' "$BOLD" "$(tr mode)" "$RESET" "$(tr native)"
 }
+brand
+choose_language
+printf '  %s%s%s  /  v0.2  /  %s\n\n' "$BOLD" "$(tr mode)" "$RESET" "$(tr native)"
 section() { printf '\n  %s%s%s\n' "$BOLD" "$(tr "$1")" "$RESET"; line; }
 message() { printf '  %s%s%s  %s\n' "$ACCENT" '·' "$RESET" "$1"; }
 warning() { printf '  %s!%s  %s\n' "$GOLD" "$RESET" "$1"; }
@@ -174,7 +174,6 @@ confirm() {
   case "$answer" in j|J|ja|Ja|JA|y|Y|yes|Yes|YES) return 0 ;; *) return 1 ;; esac
 }
 
-brand
 if [[ "$MODE" != native ]]; then error "$(tr invalid_mode)"; exit 2; fi
 if [[ "$ACTION" == webview ]]; then
   exec bash "$WEBVIEW" --lang "$LANG_CHOICE"
@@ -189,8 +188,8 @@ success "$(tr linux)"
 steps=(download verify extract preflight runner entry heap)
 # This is *stage progress*, never a made-up download percentage.
 progress_bar() {
-  local completed="$1" bars=28 i filled out=''
-  filled=$((completed * 28 / 7))
+  local completed="$1" bars="${2:-28}" i filled out=''
+  filled=$((completed * bars / 7))
   for ((i=0;i<bars;i++)); do
     if ((i < filled)); then out+='━'; else out+='─'; fi
   done
@@ -296,8 +295,8 @@ paint_active() {
   local elapsed=$(( $(date +%s) - start_time ))
   local txt="$(tr "${steps[phase-1]}")"
   if [[ -t 1 ]]; then
-    printf '\r\033[2K  %s%s%s  %02d / 07  %-31.31s  %s%3ds%s' \
-      "$ACCENT" "${spin[tick%4]}" "$RESET" "$phase" "$txt" "$DIM" "$elapsed" "$RESET"
+    printf '\r\033[2K  %s%s%s  %02d/07  %s  %-27.27s  %s%3ds%s' \
+      "$ACCENT" "${spin[tick%4]}" "$RESET" "$phase" "$(progress_bar "$((phase-1))" 18)" "$txt" "$DIM" "$elapsed" "$RESET"
   elif (( tick % 20 == 0 )); then
     printf '  %02d / 07  %s\n' "$phase" "$txt"
   fi
