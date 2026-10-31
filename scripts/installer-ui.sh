@@ -174,28 +174,47 @@ choose_language() {
 }
 line() { printf '  %s────────────────────────────────────────────────────────%s\n' "$DIM" "$RESET"; }
 brand() {
-  local cols
+  local cols pad row subtitle credits rule_width separator
   cols="${COLUMNS:-$(tput cols 2>/dev/null || printf '80')}"
   [[ "$cols" =~ ^[0-9]+$ ]] || cols=80
-  local LOGO_IVORY='' LOGO_MUTED=''
+  (( cols > 0 )) || cols=80
+  local logo_ink='' logo_subtle=''
   if (( COLOR )); then
-    LOGO_IVORY=$'\033[38;5;255m'
-    LOGO_MUTED=$'\033[38;5;109m'
+    logo_ink=$'\033[38;5;255m'
+    logo_subtle=$'\033[38;5;110m'
   fi
   printf '\n'
-  if (( cols >= 61 )); then
-    printf '  %s%s%s\n' "$LOGO_IVORY" '    _    ___   _  _    _____   _____   ___     _   ' "$RESET"
-    printf '  %s%s%s\n' "$LOGO_IVORY" '   | |  |_ _| | \| |  |_   _| | ____| |_ _|   /_\  ' "$RESET"
-    printf '  %s%s%s\n' "$LOGO_IVORY" '_  | |   | |  | .` |    | |   |  _|    | |   / _ \ ' "$RESET"
-    printf '  %s%s%s\n' "$LOGO_IVORY" '| |_| |  | |  | |\ |    | |   | |___   | |  / ___ \' "$RESET"
-    printf '  %s%s%s\n' "$LOGO_IVORY" ' \___/  |___| |_| \_|   |_|   |_____| |___| /_/   \_\' "$RESET"
-    printf '\n'
-    printf '      %s──────────────── %sP R O T O N%s %s────────────────%s\n' "$DIM" "$LOGO_MUTED" "$RESET" "$DIM" "$RESET"
+  if (( cols >= 66 )); then
+    # Self-contained italic wordmark; requires no figlet fonts or packages.
+    local -a logo=(
+    '    __   ____     _   __   ______   ______   ____     ___'
+    '   / /  /  _/    / | / /  /_  __/  / ____/  /  _/    /   |'
+    '   / /   / /    /  |/ /    / /    / __/      / /    / /| |'
+    '__/ /   / /    / /|  /    / /     / /___    / /    / ___ |'
+    '\___/  /___/  /_/ |_/    /_/      \____/   /___/  /_/  |_|'
+    )
+    pad=$(( (cols - 58) / 2 ))
+    for row in "${logo[@]}"; do
+      printf '%*s%s%s%s\n' "$pad" '' "$logo_ink" "$row" "$RESET"
+    done
+    subtitle='P R O T O N'
   else
-    printf '  %s%sJINTEIA%s  %sP R O T O N%s\n' "$LOGO_IVORY" "$BOLD" "$RESET" "$LOGO_MUTED" "$RESET"
+    subtitle='JINTEIA-PROTON'
   fi
-  printf '  %sby DtyPnt71 / Burarion%s\n' "$DIM" "$RESET"
-  line
+  pad=$(( (cols - ${#subtitle}) / 2 ))
+  (( pad >= 0 )) || pad=0
+  printf '\n%*s%s%s%s\n' "$pad" '' "$logo_subtle" "$subtitle" "$RESET"
+  credits='by DtyPnt71 / Burarion'
+  pad=$(( (cols - ${#credits}) / 2 ))
+  (( pad >= 0 )) || pad=0
+  printf '%*s%s%s%s\n' "$pad" '' "$DIM" "$credits" "$RESET"
+  rule_width=$(( cols - 4 ))
+  (( rule_width > 58 )) && rule_width=58
+  (( rule_width < 1 )) && rule_width=1
+  pad=$(( (cols - rule_width) / 2 ))
+  printf -v separator '%*s' "$rule_width" ''
+  separator="${separator// /─}"
+  printf '%*s%s%s%s\n' "$pad" '' "$DIM" "$separator" "$RESET"
 }
 brand
 choose_language
