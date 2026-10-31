@@ -185,11 +185,13 @@ get_phase() {
 while kill -0 "$worker" 2>/dev/null; do
   get_phase
   if (( phase > last_phase )); then
-    if (( last_phase > 0 )); then
-      printf '\r\033[K  %s✓%s  %s\n' "$OK" "$R" "${steps[last_phase-1]}"
-    fi
+    while (( last_phase < phase )); do
+      if (( last_phase > 0 )); then
+        printf '\r\033[K  %s✓%s  %s\n' "$OK" "$R" "${steps[last_phase-1]}"
+      fi
+      last_phase=$(( last_phase + 1 ))
+    done
     printf '  %s•%s  %s' "$BLUE" "$R" "${steps[phase-1]}"
-    last_phase=$phase
   fi
   if (( last_phase > 0 )) && [[ -t 1 ]]; then
     elapsed=$(( $(date +%s) - start_time ))
