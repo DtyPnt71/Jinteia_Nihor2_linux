@@ -25,7 +25,9 @@ jobs:
         run: python3 -m unittest discover -s proton/tests -p 'test_*.py' -q
       - name: Run source-readable bootstrap checks
         run: python3 -m unittest tests_bootstrap.py -q
-      - name: Run isolated simulated integration tests\n        run: python3 -m unittest tests_bootstrap_integration.py -q\n      - name: Explain remaining verification
+      - name: Run isolated simulated integration tests
+        run: python3 -m unittest tests_bootstrap_integration.py -q
+      - name: Explain remaining verification
         run: |
           echo "No real .run download, Lutris entry or game launch is exercised by these checks."
           echo "Heap binary integration tests require the matching original DLL fixture."
