@@ -4,6 +4,8 @@
 
 # Jinteia / Nihor2 on Linux
 
+> **Under review: source-readable installer** — see [instructions and test status](docs/SOURCE_INSTALLER_PREVIEW.md). This feature branch has passed native CachyOS installation and repeat-install protection tests, but the new-user game launch and WebView2 setup are not verified. The published v0.2 release is unchanged.
+
 Run **Nihor2 / Chronicles of Jinteia** on Linux with Lutris using a custom Proton build.
 
 This setup uses the **Jinteia Patcher** as the main entry point.  

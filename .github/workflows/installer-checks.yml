@@ -1,0 +1,33 @@
+name: Jinteia-Proton installer checks
+
+on:
+  push:
+    branches:
+      - installer/source-readable-v0.2-preview
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  offline-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out sources
+        uses: actions/checkout@v4
+      - name: Check Shell syntax
+        run: |
+          bash -n install.sh
+          bash -n proton/setup-jinteia.sh
+      - name: Compile Python
+        run: python3 -m compileall -q heap proton/tools tests_bootstrap.py tests_bootstrap_integration.py
+      - name: Run v0.2 installer regression tests
+        run: python3 -m unittest discover -s proton/tests -p 'test_*.py' -q
+      - name: Run source-readable bootstrap checks
+        run: python3 -m unittest tests_bootstrap.py -q
+      - name: Run isolated simulated integration tests
+        run: python3 -m unittest tests_bootstrap_integration.py -q
+      - name: Explain remaining verification
+        run: |
+          echo "No real .run download, Lutris entry or game launch is exercised by these checks."
+          echo "Heap binary integration tests require the matching original DLL fixture."
