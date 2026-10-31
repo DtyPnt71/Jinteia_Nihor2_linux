@@ -1,6 +1,6 @@
 # Trust, downloads and source transparency
 
-[Overview](../README.md) · [Install](INSTALLATION.md) · [Full test record](INSTALLER_AUDIT.md)
+[Overview](../README.md) · [Install](INSTALLATION.md) · [Technical verification](DEVELOPMENT.md)
 
 ## What is readable
 
@@ -32,19 +32,7 @@ A hash check establishes integrity against the recorded expected bytes, **not** 
 
 The repository installer applies its included Heap Fix code; **you do not need to run the legacy Heap Fix ZIP separately** after a successful source-installer setup.
 
-To inspect the public binary without installing:
-
-```bash
-bash install.sh --verify-release
-```
-
-To apply the version-specific patch **only to a temporary runner** and verify restoration:
-
-```bash
-bash install.sh --simulate-install --lang en
-```
-
-The temporary test needs at least 4 GiB available, and downloads the real release. It does not create Lutris entries or touch existing prefixes.
+Maintainer verification commands and reproducibility notes are documented in [Development and validation](DEVELOPMENT.md).
 
 ## Manual downloads and limitations
 
