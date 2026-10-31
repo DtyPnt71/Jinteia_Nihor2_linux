@@ -1,50 +1,47 @@
 # Source-readable v0.2 installer — audit checklist
 
-**Status: DRAFT / INCOMPLETE. Not ready for installation or release.**
+**Status: DRAFT. Source files have been added, but the installer has NOT passed a real clean-system installation test. Do not publish it as a stable release yet.**
 
-The proposed `install.sh` is a transparent coordinator for the existing v0.2 release. It currently downloads the SHA-256-pinned 540 MB `.run`, treats it **only as an archive**, extracts the inner runner tarball, invokes the original readable Lutris setup helper, then calls the recovered exact-build Heap Fix.
+The proposed `install.sh` downloads the existing pinned v0.2 `.run` asset, verifies its SHA-256, treats it only as a transport archive (never executes its wrapper), extracts the nested runner and invokes the recovered source-readable Lutris helper and exact-build Heap Fix.
 
-**The dependency files listed below are not yet committed on this branch.** As a result, the GitHub copy of `install.sh` deliberately fails its initial prerequisite check. Do not instruct end users to run it from `main` or from this branch yet.
+## Source files now available in this PR
 
-## Files to add from the recovered source archive
-
+- `install.sh`
 - `proton/setup-jinteia.sh`
 - `proton/tools/create_lutris_entry.py`
-- `heap/heap-test.py`
-- `heap/heap_core.py`
-- `heap/binary_patch.py`
-- Offline tests: `tests_bootstrap.py`, `tests_bootstrap_integration.py`, and `proton/tests/test_installer.py`.
-- Relevant original build/heap tests and reproducibility instructions, after confirming provenance and avoiding third-party binary redistribution.
+- `heap/heap-test.py`, `heap/heap_core.py`, `heap/binary_patch.py`
+- `proton/tests/test_installer.py`, `tests_bootstrap.py`
+- Heap tests: `heap/tests/test_heap_fix.py`, `test_terminal.py`, `test_upgrade.py`
+- Basic CI: `.github/workflows/installer-checks.yml`
 
-The Wine source diffs are in **draft PR #5**: https://github.com/DtyPnt71/Jinteia_Nihor2_linux/pull/5. The proposed simplified docs are in **draft PR #4**.
+The corresponding Wine source-diff review is in [draft PR #5](https://github.com/DtyPnt71/Jinteia_Nihor2_linux/pull/5). Revised user documentation is in [draft PR #4](https://github.com/DtyPnt71/Jinteia_Nihor2_linux/pull/4).
 
-## Verified hashes on a working Linux installation (read-only)
+## Confirmed on a working Linux installation (read-only)
 
-| File state | SHA-256 | Status |
+| File | SHA-256 | Meaning |
 | --- | --- | --- |
-| Installed 64-bit patched `ntdll.dll` | `7b925e64a014111f80a1be831866f4d38f34c51abc35640ea87a6926716b021f` | Exact match to recovered `PATCHED_SHA256` |
-| Original DLL backup `ntdll.dll.jinteia-heap-test1.original` | `ad0243384afa5fad82331dacfd7e45383b2a0c955fb8f99dd12e1cfd7d558438` | Exact match to recovered `ORIGINAL_SHA256` |
+| Patched 64-bit `ntdll.dll` | `7b925e64a014111f80a1be831866f4d38f34c51abc35640ea87a6926716b021f` | Matches recovered `PATCHED_SHA256` |
+| Original DLL backup `ntdll.dll.jinteia-heap-test1.original` | `ad0243384afa5fad82331dacfd7e45383b2a0c955fb8f99dd12e1cfd7d558438` | Matches recovered `ORIGINAL_SHA256` |
 
-The user additionally ran `bash install.sh --check --runner <existing runner>`; it reported `[INSTALLED]`, verified original backup, and Heap-Fix2 + Heap-Fix1 verified on disk. The command made no changes.
+The maintainer ran the source-readable installer's read-only `--check` and received `[INSTALLED]` plus a verified original backup.
 
-## Tests from the recovered local preview
+## Tests and limitations
 
-- 16 original setup regression tests passed.
-- 5 bootstrap tests passed.
-- 3 *simulated* end-to-end flow tests passed (local fake `.run` archive, mock download, mock Lutris installer and Heap Fix; covers checksum mismatch, user cancellation, extraction without executing the .run wrapper, and refusal to overwrite an existing runner).
-- Shell syntax passed.
-- Original heap fixture tests have **not** been run in this environment because the matching original binary is not available here.
+- Recovered original setup regression suite: **16 tests passed locally**.
+- New bootstrap unit suite: **5 tests passed locally**.
+- Separate isolated test harness using mock download/runner/Heap-Fix: **3 tests passed locally**; its source file is in the local preview but is not part of this GitHub PR yet.
+- Basic syntax and Python compilation checks passed.
+- The CI workflow runs the original setup and bootstrap unit suites in GitHub Actions. **A green CI result is not proof of a real installation**.
+- The exact full `540 MB` release asset extraction, Lutris integration, first-run/second-run behavior on a real system, real DLL patch/restore on a clean runner, and actual game launch are **not yet verified in this PR**.
 
-**Not yet tested:** the actual 540 MB asset download and extraction, full install on isolated native/Flatpak Lutris, real binary Heap-Fix application, restore, and clean/repeated installation.
+## Release gates
 
-## Safety gates
+1. Check the new GitHub Actions status and review each source file.
+2. Verify the actual v0.2 `.run` payload and expected original DLL checksum.
+3. Test installation on an isolated user/home with no existing `Jinteia-Proton-0.2` runner.
+4. Confirm successful Heap-Fix application and verified original backup in that isolated runner, then exercise the restore path.
+5. Test native Lutris config and WebView2/official patcher steps, plus actual gameplay.
+6. Improve public transparency further by releasing the runner archive separately, not only embedding it in `.run`.
+7. Only then merge PRs and publish a new release.
 
-1. Add the recovered source dependencies to this branch and review them.
-2. Add source-level test fixtures and CI checks.
-3. Verify `install.sh` against the exact existing release payload SHA-256.
-4. Use an isolated home/runner location (or separate test account), *never* overwrite a working `Jinteia-Proton-0.2`.
-5. Exercise install, already installed, failed download, failed checksum, backup/restore, and failure after install but before heap patch.
-6. Test in Lutris and Jinteia before public release.
-7. Prefer a separately published, hashed runner archive in the future; a readable launcher alone does not prove reproducibility of the opaque binary payload.
-
-Do not merge or label this as a completed one-command installer until these gates pass.
+**Preserve the existing v0.2 installation:** the installer intentionally refuses to overwrite a runner with the same name. No published v0.2 assets were changed by this PR.
