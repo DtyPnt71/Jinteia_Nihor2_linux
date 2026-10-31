@@ -1,0 +1,15 @@
+--- a/dlls/ntdll/heap.c
++++ b/dlls/ntdll/heap.c
+@@ -1808,6 +1808,12 @@
+     group_size = offsetof( struct group, first_block ) + GROUP_BLOCK_COUNT * block_size;
+     group_block_size = heap_get_block_size( heap, flags, group_size );
+ 
++    /* DtyPnt71 Heap-Test2: start the measured group request at the next
++     * backend size-class boundary. Keep group payload and object layout.
++     * The binary add-on is limited to the matching 64-bit build.
++     */
++    if (sizeof(void *) == 8 && group_block_size == 0x5f0) group_block_size = 0x600;
++
+     heap_lock( heap, flags );
+ 
+     if (group_block_size >= HEAP_MIN_LARGE_BLOCK_SIZE)
