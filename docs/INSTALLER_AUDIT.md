@@ -32,7 +32,7 @@ The maintainer ran the source-readable installer's read-only `--check` and recei
 - Separate isolated test harness using mock download/runner/Heap-Fix: **5 tests passed locally**, including both `--verify-release` and `--test-heap` modes; the integration test source is now checked into this PR.
 - Basic syntax and Python compilation checks passed.
 - The CI workflow runs the original setup and bootstrap unit suites in GitHub Actions. **A green CI result is not proof of a real installation**.
-- The original v0.2 release asset SHA-256, nested runner archive and unpatched 64-bit DLL were checked successfully on CachyOS. Lutris integration, first-run/second-run behavior on a real system, real DLL patch/restore on a clean runner, and actual game launch are **not yet verified in this PR**.
+- The original v0.2 release asset SHA-256, nested runner archive and unpatched 64-bit DLL were checked successfully on CachyOS. Lutris integration, first-run/second-run behavior on a clean system, and actual game launch are **not yet verified in this PR**. A separate real-DLL patch+restore cycle has now passed in the isolated test runner.
 
 ## Release verification completed on CachyOS (2026-10-31)
 
@@ -46,14 +46,25 @@ This result validates the release archive and original DLL **only**; it does not
 
 The draft `bash install.sh --test-heap` mode verifies the release again, extracts the original runner to a private temporary directory, runs the recovered real Heap-Fix installer against that temporary DLL, verifies both patched DLL and original backup hashes, restores the original DLL byte-for-byte, then removes the temporary runner and download. It never invokes the Lutris setup helper and never targets the user's working runner or prefix. It requires at least **4 GiB free** in the temporary filesystem, such as `/tmp` or an alternative set by `TMPDIR`. It does write a temporary runner and patch that temporary copy; unlike `--verify-release`, it is **not read-only**.
 
-The `--test-heap` path has passed **simulated offline integration tests**, but **has not yet been performed against the real release DLL**.
+### Real isolated Heap-Fix test — PASSED on CachyOS, 2026-10-31
+
+The maintainer ran `bash install.sh --test-heap` after `git pull --ff-only` from this branch. The public v0.2 asset checksum and original 64-bit DLL checksum matched. The test extracted the full runner into a private directory under `/tmp/jinteia-source-installer.*/isolated-runner/`, ran the *actual* recovered Heap-Fix 3.0.0 application and original-DLL restoration against **that temporary runner**, and checked the expected patched DLL and original-backup SHA-256 values.
+
+Observed success markers:
+- `[SUCCESS] HEAP FIX INSTALLED`
+- `[SUCCESS] ORIGINAL RESTORED — HEAP FIX REMOVED`
+- `ISOLATED HEAP TEST PASSED: real original DLL patched, backup verified, then restored byte-for-byte.`
+
+The original helper warned that **four protected processes could not be inspected**. This does **not** undermine the byte-level output validation of the isolated test, but it means that the process-running check was not exhaustive. The test never invoked the Lutris setup helper or targeted the maintainer's working runner. The temporary runner is removed by the shell trap when the command exits.
+
+**Validated now:** release asset, original DLL, real Heap-Fix1+2 application on matching temporary DLL, original-backup checksum and restoration. **Not yet validated:** full Lutris entry creation, clean new-user installation, original Jinteia patcher/WebView2 first run, gameplay, or end-to-end install failure recovery.
 
 ## Release gates
 
 1. Check the new GitHub Actions status and review each source file.
-2. Verify the actual v0.2 `.run` payload and expected original DLL checksum.
+2. [Done] Verify the actual v0.2 `.run` payload and expected original DLL checksum.
 3. Test installation on an isolated user/home with no existing `Jinteia-Proton-0.2` runner.
-4. Confirm successful Heap-Fix application and verified original backup in that isolated runner, then exercise the restore path.
+4. [Done for the isolated runner] Confirm successful real-binary Heap-Fix application, verified original backup and restore. Still test the installation's integrated handoff.
 5. Test native Lutris config and WebView2/official patcher steps, plus actual gameplay.
 6. Improve public transparency further by releasing the runner archive separately, not only embedding it in `.run`.
 7. Only then merge PRs and publish a new release.
