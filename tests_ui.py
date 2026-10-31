@@ -26,7 +26,7 @@ class BilingualUITests(unittest.TestCase):
             p = self.run_cmd('bash', UI, '--lang', 'de', '--demo',
                              env={'HOME': root, 'XDG_STATE_HOME': root + '/state'})
             self.assertEqual(p.returncode, 0, p.stderr)
-            for s in ('JINTEIA', 'by DtyPnt71 / Burarion', 'VORBEREITUNG',
+            for s in ('████', 'by DtyPnt71 / Burarion', 'VORBEREITUNG',
                       'Proton herunterladen', 'NÄCHSTE SCHRITTE', 'Keine Spieldateien'):
                 self.assertIn(s, p.stdout)
             self.assertEqual(list(Path(root).iterdir()), [])
@@ -36,7 +36,7 @@ class BilingualUITests(unittest.TestCase):
             p = self.run_cmd('bash', UI, '--lang', 'en', '--demo',
                              env={'HOME': root, 'XDG_STATE_HOME': root + '/state'})
             self.assertEqual(p.returncode, 0, p.stderr)
-            for s in ('JINTEIA', 'PREPARATION', 'Download Proton',
+            for s in ('████', 'PREPARATION', 'Download Proton',
                       'NEXT STEPS', 'No game files changed', '7 / 7'):
                 self.assertIn(s, p.stdout)
             self.assertNotIn('VORBEREITUNG', p.stdout)
