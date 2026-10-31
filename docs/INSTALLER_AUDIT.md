@@ -73,7 +73,7 @@ All six installer setup sections completed:
 
 **Nonfatal warnings observed:** two `PyGIWarning` messages when loading Lutris GTK/Gdk; the entry was created despite those warnings. The Heap-Fix process scan also warned that **four protected processes could not be inspected**; the fix continued, verified the original backup and reported success. This limits confidence that no other process could be using the target DLL; it is **not** evidence of a binary checksum mismatch.
 
-**Verified after the installer run:** the maintainer checked the Lutris GUI and confirmed that the created entry and settings are correct. **Not tested (by deliberate choice):** game/patcher login or game launch in this test account, because the maintainer reports a game rule prohibiting two different accounts on one PC. No bypass or second-account game test is planned. WebView2 installation in the fresh prefix, repeated-install refusal, and interrupted-install recovery remain unverified.
+**Verified after the installer run:** the maintainer checked the Lutris GUI and confirmed that the created entry and settings are correct. **Not tested (by deliberate choice):** game/patcher login or game launch in this test account, because the maintainer reports a game rule prohibiting two different accounts on one PC. No bypass or second-account game test is planned. WebView2 installation in the fresh prefix and interrupted-install recovery remain unverified. Re-running the installer on the existing test runner was subsequently rejected before download, as expected.
 
 The existing main user's working runner and prefixes remained out of scope because this was a separate account. The public release and `main` branch remain unchanged.
 
