@@ -233,6 +233,43 @@ progress_bar() {
   done
   printf '%s' "$out"
 }
+# Speed is derived from bytes written to the actual curl/wget target.
+# The core publishes only its private temp file path; no separate download.
+begin_speed_monitor() {
+  speed_dir="$(mktemp -d "${TMPDIR:-/tmp}/jinteia-speed.XXXXXXXX")"
+  speed_path_file="$speed_dir/source.path"
+  speed_prior_bytes=-1
+  speed_prior_ms=0
+  speed_rate=''
+  speed_display=''
+  trap 'rm -rf -- "$speed_dir"' EXIT
+}
+update_speed() {
+  speed_display=''
+  [[ -s "${speed_path_file:-}" ]] || return 0
+  local target bytes now delta diff bps
+  IFS= read -r target < "$speed_path_file" || return 0
+  [[ -f "$target" ]] || return 0
+  bytes="$(stat -c '%s' -- "$target" 2>/dev/null)" || return 0
+  [[ "$bytes" =~ ^[0-9]+$ ]] || return 0
+  now="$(date +%s%3N)"
+  if (( speed_prior_bytes >= 0 && now > speed_prior_ms )); then
+    delta=$((now - speed_prior_ms))
+    diff=$((bytes - speed_prior_bytes))
+    if ((delta >= 250 && diff >= 0)); then
+      bps=$((diff * 1000 / delta))
+      if ((bps >= 1048576)); then
+        speed_rate="$((bps / 1048576)).$(((bps % 1048576) * 10 / 1048576)) MiB/s"
+      else
+        speed_rate="$((bps / 1024)).$(((bps % 1024) * 10 / 1024)) KiB/s"
+      fi
+    fi
+  fi
+  speed_prior_bytes=$bytes
+  speed_prior_ms=$now
+  speed_display="$((bytes / 1048576)).$(((bytes % 1048576) * 10 / 1048576)) MiB"
+  [[ -n "$speed_rate" ]] && speed_display+="  ·  $speed_rate"
+}
 show_demo() {
   message "$(tr demo_info)"
   section install
@@ -284,7 +321,8 @@ run_temporary_simulation() {
     '==> Heap Fix installed with expected patch and backup hashes; testing restore'
     '==> ISOLATED HEAP TEST PASSED'
   )
-  ( JINTEIA_UI_INTERNAL=1 bash "$ROOT/install.sh" --test-heap ) > "$logfile" 2>&1 &
+  begin_speed_monitor
+  ( JINTEIA_UI_INTERNAL=1 JINTEIA_PROGRESS_PATH_FILE="$speed_path_file" bash "$ROOT/install.sh" --test-heap ) > "$logfile" 2>&1 &
   local worker=$!
   trap 'kill "$worker" 2>/dev/null || true' INT TERM
 
@@ -303,8 +341,13 @@ run_temporary_simulation() {
     fi
     if [[ -t 1 && phase -gt 0 ]]; then
       elapsed=$(( $(date +%s) - start ))
-      printf '\r\033[2K  %s%s%s  %s  %s%d/7%s  %ds' \
-        "$ACCENT" "${sim_spin[ticks%4]}" "$RESET" "$(progress_bar "$((phase-1))" 20)" "$DIM" "$((phase-1))" "$RESET" "$elapsed"
+      local transfer=''
+      if ((phase == 1)); then
+        update_speed
+        [[ -n "$speed_display" ]] && transfer="  ·  $speed_display"
+      fi
+      printf '\r\033[2K  %s%s%s  %s  %s%d/7%s  %ds%s' \
+        "$ACCENT" "${sim_spin[ticks%4]}" "$RESET" "$(progress_bar "$((phase-1))" 20)" "$DIM" "$((phase-1))" "$RESET" "$elapsed" "$transfer"
     fi
     ((ticks+=1))
     sleep 0.35
@@ -379,7 +422,8 @@ mkdir -p -- "$log_dir"
 log_file="$log_dir/installer-ui-$(date +%Y%m%d-%H%M%S).log"
 : > "$log_file"
 chmod 600 "$log_file"
-( printf 'y\n' | JINTEIA_UI_INTERNAL=1 bash "$ROOT/install.sh" --mode native ) > "$log_file" 2>&1 &
+begin_speed_monitor
+( printf 'y\n' | JINTEIA_UI_INTERNAL=1 JINTEIA_PROGRESS_PATH_FILE="$speed_path_file" bash "$ROOT/install.sh" --mode native ) > "$log_file" 2>&1 &
 worker=$!
 trap 'kill "$worker" 2>/dev/null || true' INT TERM
 
@@ -402,9 +446,14 @@ paint_active() {
   (( phase > 0 )) || return 0
   local elapsed=$(( $(date +%s) - start_time ))
   local txt="$(tr "${steps[phase-1]}")"
+  local transfer=''
   if [[ -t 1 ]]; then
-    printf '\r\033[2K  %s%s%s  %02d/07  %s  %-27.27s  %s%3ds%s' \
-      "$ACCENT" "${spin[tick%4]}" "$RESET" "$phase" "$(progress_bar "$((phase-1))" 18)" "$txt" "$DIM" "$elapsed" "$RESET"
+    if ((phase == 1)); then
+      update_speed
+      [[ -n "$speed_display" ]] && transfer="  ·  $speed_display"
+    fi
+    printf '\r\033[2K  %s%s%s  %02d/07  %s  %-27.27s  %s%3ds%s%s' \
+      "$ACCENT" "${spin[tick%4]}" "$RESET" "$phase" "$(progress_bar "$((phase-1))" 18)" "$txt" "$DIM" "$elapsed" "$RESET" "$transfer"
   elif (( tick % 20 == 0 )); then
     printf '  %02d / 07  %s\n' "$phase" "$txt"
   fi
