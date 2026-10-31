@@ -48,9 +48,28 @@ class BilingualUITests(unittest.TestCase):
                              env={'HOME': home, 'COLUMNS': '50'})
             self.assertEqual(p.returncode, 0, p.stderr)
             self.assertIn('JINTEIA', p.stdout)
-            self.assertIn('P R O T O N', p.stdout)
-            self.assertNotIn('|_____|', p.stdout)
+            self.assertIn('JINTEIA-PROTON', p.stdout)
+            self.assertNotIn('   / | / /', p.stdout)
             self.assertIn('by DtyPnt71 / Burarion', p.stdout)
+
+    def test_large_logo_subtitle_credits_are_actually_centered(self):
+        for width in (66, 80, 100):
+            with self.subTest(columns=width), tempfile.TemporaryDirectory() as home:
+                p = self.run_cmd('bash', UI, '--lang', 'de', '--demo',
+                                 env={'HOME': home, 'COLUMNS': str(width)})
+                self.assertEqual(p.returncode, 0, p.stderr)
+                rows = p.stdout.splitlines()
+                # Five lines of italic wordmark, aligned to one fixed 58-col canvas.
+                art = rows[1:6]
+                self.assertEqual(len(art), 5)
+                left = (width - 58) // 2
+                self.assertTrue(all(row.startswith(' ' * left) for row in art))
+                self.assertTrue(all(len(row.rstrip()) <= left + 58 for row in art))
+                subtitle = next(row for row in rows if 'P R O T O N' in row)
+                self.assertEqual(subtitle, ' ' * ((width - 11) // 2) + 'P R O T O N')
+                credits = 'by DtyPnt71 / Burarion'
+                credit_row = next(row for row in rows if credits in row)
+                self.assertEqual(credit_row, ' ' * ((width - len(credits)) // 2) + credits)
 
     def test_language_selection_in_real_pseudo_terminal(self):
         # Only the demo is invoked; pty checks the actual 1/2 language menu.
