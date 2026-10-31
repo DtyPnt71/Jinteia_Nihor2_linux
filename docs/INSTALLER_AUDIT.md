@@ -67,13 +67,13 @@ All six installer setup sections completed:
 - System preflight and native Lutris Python configuration API passed; both 64-bit and 32-bit Vulkan loaders and Vulkan information were detected.
 - The released Proton runner was installed under the test account's own Lutris runner directory.
 - Jinteia game/prefix directories were created within the test account.
-- Lutris reported `Lutris entry created: Jinteia Patcher 0.2` and `Lutris entry prepared`; the configuration helper sets Wine runner version `Jinteia-Proton-0.2`. **The Lutris UI has not yet been visually checked.**
+- Lutris reported `Lutris entry created: Jinteia Patcher 0.2` and `Lutris entry prepared`; the configuration helper sets Wine runner version `Jinteia-Proton-0.2`. **The maintainer subsequently confirmed that the Lutris GUI entry exists and its runner/prefix settings match the expected values.**
 - After the Lutris entry was created, the real Heap-Fix program reported `[SUCCESS] HEAP FIX INSTALLED` and `Original backup saved and verified.`
 - The coordinator finished with `Runner and Heap Fix ready.`
 
 **Nonfatal warnings observed:** two `PyGIWarning` messages when loading Lutris GTK/Gdk; the entry was created despite those warnings. The Heap-Fix process scan also warned that **four protected processes could not be inspected**; the fix continued, verified the original backup and reported success. This limits confidence that no other process could be using the target DLL; it is **not** evidence of a binary checksum mismatch.
 
-**Not yet validated:** that the entry appears with the correct runner in the *Lutris UI*, that the official patcher and WebView2 can be configured in the fresh prefix, a successful game launch, a repeated install refusal in this test account, and rollback after an incomplete integrated install.
+**Verified after the installer run:** the maintainer checked the Lutris GUI and confirmed that the created entry and settings are correct. **Not yet explicitly confirmed:** installation of WebView2, launch of the official Nihor2 patcher/game in this test account, a repeated install refusal, and rollback after an incomplete integrated install.
 
 The existing main user's working runner and prefixes remained out of scope because this was a separate account. The public release and `main` branch remain unchanged.
 
@@ -83,7 +83,7 @@ The existing main user's working runner and prefixes remained out of scope becau
 2. [Done] Verify the actual v0.2 `.run` payload and expected original DLL checksum.
 3. [Done for native Lutris on CachyOS] Test initial installation on a separate Linux user/home with no existing runner.
 4. [Done for the isolated runner] Confirm successful real-binary Heap-Fix application, verified original backup and restore. Still test the installation's integrated handoff.
-5. Check the created native Lutris entry in the GUI, then test WebView2/official patcher steps and actual gameplay.
+5. [Lutris GUI verified] Test WebView2/official patcher steps and actual gameplay in the test account.
 6. Improve public transparency further by releasing the runner archive separately, not only embedding it in `.run`.
 7. Only then merge PRs and publish a new release.
 
