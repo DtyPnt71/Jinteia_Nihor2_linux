@@ -36,13 +36,25 @@ Choose **Deutsch** or **English** at startup. The installer downloads and verifi
 
 1. **Lutris neu starten / Restart Lutris.**
 2. Rechtsklick auf **Jinteia Patcher 0.2** -> konfigurieren / Rightclick on **Jinteia Patcher 0.2** configure.
-3. In "Spieleinstellungen" **Nihor2-Patcher.exe** als ausführbare Datei auswählen / In tab "gameoptions" select the official **Nihor2-Patcher.exe** as executable.
+3. In "Spieleinstellungen" **Nihor2-Patcher.exe*** als ausführbare Datei auswählen / In tab "gameoptions" select the official **Nihor2-Patcher.exe** as executable.
 4. **Microsoft Edge WebView2 Evergreen x64** in demselben Wine-Präfix installieren / Install WebView2 Evergreen x64 in the same Wine prefix.
 ```
 Der Installer kann die Datei optional herunterladen / The installer can optionally download the file.)
 ```
 
+---
+### Download
+
+Die Spieldateien sind ausdrücklich nur über den offiziellen Discord herunterzuladen
+
+Game files must only be downloaded through the official Jinteia Discord server. Please do not use unofficial download sources.
+
+[![Official Jinteia Discord](https://img.shields.io/badge/Discord-Official%20Jinteia%20Server-5865F2?logo=discord&logoColor=white)](https://discord.gg/jinteia)
+
+---
+
 **[Schritt-für-Schritt-Anleitung / Installation guide](docs/INSTALLATION.md)** · **[Fehlerbehebung / Troubleshooting](docs/TROUBLESHOOTING.md)**
+
 
 ## Repository
 
