@@ -1,0 +1,47 @@
+diff --git a/dlls/ntdll/loader.c b/dlls/ntdll/loader.c
+--- a/dlls/ntdll/loader.c
++++ b/dlls/ntdll/loader.c
+@@ -477,10 +477,24 @@ static ULONG_PTR allocate_stub( const char *dll, const char *name )
+     {
+         SIZE_T size = MAX_SIZE;
+         if (NtAllocateVirtualMemory( NtCurrentProcess(), (void **)&stubs, 0, &size,
+-                                     MEM_COMMIT, PAGE_EXECUTE_READWRITE ) != STATUS_SUCCESS)
++                                     MEM_COMMIT, PAGE_READWRITE ) != STATUS_SUCCESS)
+             return 0xdeadbeef;
+     }
+     stub = &stubs[nb_stubs++];
++
++    /* Keep generated import stubs W^X.  NtProtectVirtualMemory rounds this
++     * small range to the containing page.  Existing stubs on that page are
++     * briefly non-executable while the loader writes the next stub, then the
++     * page is restored to PAGE_EXECUTE_READ below. */
++    {
++        void *protect_addr = stub;
++        SIZE_T protect_size = sizeof(*stub);
++        ULONG old_protect;
++
++        if (NtProtectVirtualMemory( NtCurrentProcess(), &protect_addr, &protect_size,
++                                    PAGE_READWRITE, &old_protect ) != STATUS_SUCCESS)
++            return 0xdeadbeef;
++    }
+ #ifdef __i386__
+     stub->pushl1    = 0x68;  /* pushl $name */
+     stub->name      = name;
+@@ -522,6 +536,17 @@ static ULONG_PTR allocate_stub( const char *dll, const char *name )
+     stub->jmpq_rax[0]     = 0xff;  /* jmp %rax */
+     stub->jmpq_rax[1]     = 0xe0;
+ #endif
++    {
++        void *protect_addr = stub;
++        SIZE_T protect_size = sizeof(*stub);
++        ULONG old_protect;
++
++        NtFlushInstructionCache( NtCurrentProcess(), stub, sizeof(*stub) );
++        if (NtProtectVirtualMemory( NtCurrentProcess(), &protect_addr, &protect_size,
++                                    PAGE_EXECUTE_READ, &old_protect ) != STATUS_SUCCESS)
++            return 0xdeadbeef;
++    }
++
+     return (ULONG_PTR)stub;
+ }
+ 
