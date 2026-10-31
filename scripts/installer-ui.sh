@@ -174,9 +174,20 @@ choose_language() {
 }
 line() { printf '  %s────────────────────────────────────────────────────────%s\n' "$DIM" "$RESET"; }
 brand() {
+  local cols
+  cols="$(tput cols 2>/dev/null || printf '80')"
+  [[ "$cols" =~ ^[0-9]+$ ]] || cols=80
   printf '\n'
-  printf '  %s▌%s  %s%sJINTEIA%s  %sPROTON%s\n' "$ACCENT" "$RESET" "$BOLD" "$ACCENT" "$RESET" "$BOLD" "$RESET"
-  printf '  %s   by DtyPnt71 / Burarion%s\n' "$DIM" "$RESET"
+  if (( cols >= 78 )); then
+    printf '  %s%s%s%s%s\n' "$GOLD" ' ███ ████ █  █ ████ ████ ████  ██ ' "$RESET" "$ACCENT" '     ███  ███   ██  ████  ██  █  █'
+    printf '  %s%s%s%s%s\n' "$GOLD" '   █  ██  ██ █  ██  █     ██  █  █' "$RESET" "$ACCENT" '     █  █ █  █ █  █  ██  █  █ ██ █'
+    printf '  %s%s%s%s%s\n' "$GOLD" '   █  ██  █ ██  ██  ███   ██  ████' "$RESET" "$ACCENT" '████ ███  ███  █  █  ██  █  █ █ ██'
+    printf '  %s%s%s%s%s\n' "$GOLD" '█  █  ██  █  █  ██  █     ██  █  █' "$RESET" "$ACCENT" '     █    █  █ █  █  ██  █  █ █  █'
+    printf '  %s%s%s%s%s\n' "$GOLD" ' ██  ████ █  █  ██  ████ ████ █  █' "$RESET" "$ACCENT" '     █    █  █  ██   ██   ██  █  █'
+  else
+    printf '  %s%sJINTEIA%s%s-PROTON%s\n' "$GOLD" "$BOLD" "$RESET" "$ACCENT" "$RESET"
+  fi
+  printf '\n  %sby DtyPnt71 / Burarion%s\n' "$DIM" "$RESET"
   line
 }
 brand
