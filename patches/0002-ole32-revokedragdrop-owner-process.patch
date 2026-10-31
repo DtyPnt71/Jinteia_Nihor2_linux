@@ -1,0 +1,29 @@
+diff --git a/dlls/ole32/ole2.c b/dlls/ole32/ole2.c
+--- a/dlls/ole32/ole2.c
++++ b/dlls/ole32/ole2.c
+@@ -628,6 +628,7 @@ HRESULT WINAPI RevokeDragDrop(HWND hwnd)
+   IStream *stream;
+   IDropTarget *drop_target;
+   HRESULT hr;
++  DWORD pid = 0;
+
+   TRACE("(%p)\n", hwnd);
+
+@@ -643,8 +644,15 @@ HRESULT WINAPI RevokeDragDrop(HWND hwnd)
+   if (!(map = get_droptarget_handle(hwnd)))
+     return DRAGDROP_E_NOTREGISTERED;
+
+-  drop_target = GetPropW(hwnd, prop_oledroptarget);
+-  if(drop_target) IDropTarget_Release(drop_target);
++  /* The raw pointer in prop_oledroptarget is only valid in the process that
++   * called RegisterDragDrop, which is always the process owning the window.
++   * Releasing it from any other process dereferences a foreign address. */
++  GetWindowThreadProcessId(hwnd, &pid);
++  if (pid == GetCurrentProcessId())
++  {
++    drop_target = GetPropW(hwnd, prop_oledroptarget);
++    if(drop_target) IDropTarget_Release(drop_target);
++  }
+
+   RemovePropW(hwnd, prop_oledroptarget);
+   RemovePropW(hwnd, prop_marshalleddroptarget);
