@@ -4,87 +4,60 @@
 
 # Jinteia / Nihor2 on Linux
 
-Run **Nihor2 / Chronicles of Jinteia** on Linux with Lutris using a custom Proton build.
+**Community-maintained Linux compatibility setup** for Nihor2 / Chronicles of Jinteia using Lutris and a customized GE-Proton build.
 
-This setup uses the **Jinteia Patcher** as the main entry point.  
-The patcher can be used both to **download/install the game** and to **launch an existing installation**.
+The goal is simple: install the runner, configure the official patcher, and launch Jinteia from Lutris.
 
----
-This fix allows you running Metin2 (Jinteia) on Linux using a Wine environment.
+> [!IMPORTANT]
+> This is an **unofficial community project**. It is not affiliated with or endorsed by Jinteia / Nihor2, Valve, Lutris, Wine, or GE-Proton. The original game files and security checks are not intentionally modified or disabled by this compatibility setup.
 
-Check out the releases for more information!
----
+## Get started — v0.2
 
-***You want Discord recognize Jinteia / Nihor2?*** 
+**[Download the latest release (v0.2)](https://github.com/DtyPnt71/Jinteia_Nihor2_linux/releases/tag/v0.2)** · **[Full installation guide](docs/INSTALLATION.md)** · **[Troubleshooting](docs/TROUBLESHOOTING.md)**
 
-Download Discord-RPC Bridge:
+1. Download **Jinteia-Proton-0.2-installer.run** from the release's **Assets** section.
+2. Open a terminal in the download folder and run:
 
-https://github.com/enderice2/rpc-bridge/releases
+   ~~~bash
+   chmod +x Jinteia-Proton-0.2-installer.run
+   ./Jinteia-Proton-0.2-installer.run
+   ~~~
 
-Unzip to your gamefolder -> Open Lutris and run "bridge.exe" as Wine-Prefix
+3. Follow the **[installation guide](docs/INSTALLATION.md)** to configure the patcher in Lutris and install WebView2 and the separately distributed Heap Fix.
 
-Click "Install" 
+**Do not launch the patcher before completing the required setup.** The installer alone is not the entire installation.
 
-Start Jinteia & enjoy!
----
+### What you will download
 
-### Important
+| Asset | Purpose |
+| --- | --- |
+| **Jinteia-Proton-0.2-installer.run** | Contains and installs the customized Proton runner, checks host requirements, and creates a Lutris entry |
+| **Jinteia-HeapFix1+2.zip** | Separate manual compatibility patch used in the current v0.2 instructions |
 
-The Jinteia client executable itself is **not modified**.
+The official Jinteia patcher and Microsoft Edge WebView2 x64 are **not included** in these two release assets.
 
-No Jinteia security checks are disabled or bypassed.
+## Documentation
 
-### Disclaimer & Copyright
+- **[Installation, step by step](docs/INSTALLATION.md)** — download → installer → Lutris → WebView2 → Heap Fix → launch
+- **[Troubleshooting and logs](docs/TROUBLESHOOTING.md)** — common setup mistakes and information for bug reports
+- **[Trust, checksums and future installer format](docs/TRUST.md)** — what can currently be inspected and how we intend to improve it
 
-All game files and logos belong to Jinteia / Nihor2.
+## Compatibility and status
 
-This is an independent community project and is **not yet officially supported or endorsed by Jinteia / Nihor2**.
+Reported as working in the project's previous testing: **CachyOS**, **Linux Mint 22.3**, native **Lutris**, and Jinteia-Proton **v0.1/v0.2**. SteamOS, Flatpak Lutris, and other distributions have **not** been fully verified. Additional reports are welcome.
 
-All rights to the original game and its content remain with their respective owners.
+This build is based on **GE-Proton 11-7** and is intended for Linux. It does not replace system Wine.
 
-</details>
+## Optional: Discord Rich Presence
 
----
+For Discord game detection, see the third-party [Discord RPC Bridge](https://github.com/enderice2/rpc-bridge/releases). This is an optional, separate project and is **not required** to play Jinteia.
 
-<details>
-<summary><strong>Known test status</strong></summary>
+## Help and feedback
 
-### Confirmed working
+If installation fails, follow the [troubleshooting guide](docs/TROUBLESHOOTING.md) and include the relevant setup log **after checking it for personal data**. Please mention your distribution, Lutris installation type, and the exact stage that failed.
 
-- **CachyOS**
-- **Linux Mint 22.3**
-- Lutris
-- UMU
-- Jinteia-Proton-0.1, 0.2
-- Microsoft Edge WebView2 Runtime x64
-- Jinteia Patcher
-- Jinteia Client
-- Launching Jinteia through the patcher (not recommended)
-- Optional direct client launch using the same prefix
+## Transparency and credits
 
-### Not yet fully verified
+The current v0.2 release ships a large **.run** installer. Its **full installer source and build process are not yet published in this repository**; changing the extension to **.sh** would not itself make the bundled payload auditable. See [Trust and installer plans](docs/TRUST.md).
 
-- SteamOS
-- Flatpak Lutris
-- Other Linux distributions
-
-Feedback and additional distribution tests are welcome.
-
-</details>
-
----
-
-<details>
-<summary><strong>Credits / Notes</strong></summary>
-
-This project uses a custom Proton build based on:
-
-```text
-GE-Proton 11-7
-```
-
-Jinteia, GE-Proton, Wine, Valve, Microsoft and Lutris are separate projects and trademarks of their respective owners.
-
-This repository provides a Linux compatibility setup and is not an official Jinteia Linux release.
-
-</details>
+Jinteia / Nihor2 content and trademarks belong to their respective owners. GE-Proton, Wine, Valve, Microsoft, and Lutris are independent projects.
