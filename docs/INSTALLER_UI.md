@@ -30,6 +30,16 @@ Nach der Installation kannst du den offiziellen **Microsoft WebView2 Evergreen S
 
 **Ohne Installation anschauen:** `bash install.sh --demo --lang de`. **Nur WebView2-Download:** `bash install.sh --webview2-only --lang de`.
 
+### Echter Test mit temporärem Runner
+
+```bash
+bash install.sh --simulate-install --lang de
+```
+
+Nach einer Sicherheitsabfrage wird das veröffentlichte v0.2-Paket (~515 MiB) heruntergeladen und mittels SHA-256 geprüft. Das Setup entpackt Proton **ausschließlich in ein temporäres Verzeichnis**, spielt den echten Heap-Fix auf die Kopie, prüft das Original-Backup und stellt die DLL anschließend wieder her. Danach wird die Testkopie gelöscht.
+
+**Kein Lutris-Eintrag, kein Wine-Präfix und kein bestehender Runner werden geändert.** Es bleiben nur Diagnoseprotokolle unter `~/.local/state/jinteia-proton/simulation-*.log`. Der Test braucht mindestens **4 GiB freien Speicher** auf `/tmp` bzw. `TMPDIR` und prüft nicht den echten Spielstart.
+
 ## English
 
 ### Setup
@@ -57,6 +67,16 @@ You may optionally download the official **Microsoft WebView2 Evergreen Standalo
 7. Restart Lutris and run the official patcher.
 
 **Safe UI preview:** `bash install.sh --demo --lang en`. **WebView2 download only:** `bash install.sh --webview2-only --lang en`.
+
+### Real temporary runner test
+
+```bash
+bash install.sh --simulate-install --lang en
+```
+
+After confirmation, the published v0.2 asset (~515 MiB) is downloaded and SHA-256 verified. The runner is unpacked **only into a temporary directory**; the real Heap Fix is applied to that copy, its backup verified and the original DLL restored. The temporary runner is then deleted.
+
+**No Lutris entries, Wine prefixes or installed runners are changed.** Only diagnostic logs remain at `~/.local/state/jinteia-proton/simulation-*.log`. This test requires at least **4 GiB free** on `/tmp` or `TMPDIR` and does not test game launch.
 
 ## Validation
 
