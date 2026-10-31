@@ -155,6 +155,11 @@ if [[ "$ACTION" == test-heap ]]; then
 fi
 
 download="$TMP/$ASSET"
+# The terminal UI may observe download bytes via a private path-file. It never
+# reads release content or supplies the target path used for installation.
+if [[ -n "${JINTEIA_PROGRESS_PATH_FILE:-}" ]]; then
+  printf '%s\n' "$download" > "$JINTEIA_PROGRESS_PATH_FILE"
+fi
 say 'Downloading v0.2 release package (~540 MB)'
 if command -v curl >/dev/null 2>&1; then
   curl --fail --location --retry 2 --proto '=https' --proto-redir '=https' --tlsv1.2 --output "$download" "$URL"
