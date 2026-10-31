@@ -20,7 +20,6 @@ bash install.sh --check --runner "$HOME/.local/share/lutris/runners/wine/Jinteia
 
 ```text
 ~/.local/state/jinteia-proton/installer-ui-*.log
-~/.local/state/jinteia-proton/simulation-*.log
 ~/.cache/jinteia-proton/setup-v0.2.log
 ```
 
@@ -30,7 +29,7 @@ To read the latest UI log:
 ls -lt "$HOME/.local/state/jinteia-proton/"
 ```
 
-A failed installation might leave a partial runner or Lutris entry; **automatic rollback is not yet fully verified**. Do not repeatedly overwrite a working setup.
+If setup stops with an error, keep the log and check for a partial runner or Lutris entry before trying again. Do not delete or overwrite a working game prefix.
 
 ## Patcher / WebView2
 
@@ -42,18 +41,8 @@ If the **official Patcher** does not start, confirm that:
 
 The source installer **downloads WebView2 optionally but does not run it**. Do not create new game accounts to diagnose compatibility when the game's rules prohibit them.
 
-## Safe independent diagnostics
-
-```bash
-bash install.sh --dry-run                         # Describe planned changes, no installation
-bash install.sh --verify-release                   # Download and check published v0.2 binary
-bash install.sh --simulate-install --lang de       # Isolated temporary binary/Heap Fix test
-```
-
-The simulation uses at least 4 GiB free temporary storage and leaves only a diagnostic log. It does not test an actual Jinteia game launch.
-
 ## Updating or removing
 
 Re-running `bash install.sh` will **refuse to replace an existing runner**. To assess an existing runner or restore a backup, use the included documented Heap Fix tools with the correct version. **Never replace system Wine or delete your working game prefix to experiment.**
 
-Questions about source provenance: [Recovered patches](RECOVERED_PATCHES.md) and [transparency](TRUST.md).
+For advanced diagnostics: [Developer reference](DEVELOPMENT.md). Source provenance: [Recovered patches](RECOVERED_PATCHES.md) and [transparency](TRUST.md).

@@ -1,10 +1,10 @@
-# Source-readable v0.2 installer — audit checklist
+# Source-readable v0.2 installer — development audit
 
-**Status: DRAFT. First-time native Lutris installation and integrated Heap-Fix application passed on a separate CachyOS test account. Game configuration, WebView2, actual patcher/game launch, and failure recovery remain unverified; do not publish as a stable release yet.**
+**Historical engineering record (2026-10-31).** The installer and UI are now merged on `main`. Native Lutris setup and integrated Heap Fix were validated on CachyOS; fresh-prefix game/WebView2 launch and interrupted-install rollback were not verified. This audit is retained for maintainers, not as an end-user installation guide.
 
-The proposed `install.sh` downloads the existing pinned v0.2 `.run` asset, verifies its SHA-256, treats it only as a transport archive (never executes its wrapper), extracts the nested runner and invokes the recovered source-readable Lutris helper and exact-build Heap Fix.
+The merged `install.sh` downloads the existing pinned v0.2 `.run` asset, verifies its SHA-256, treats it only as a transport archive (never executes its wrapper), extracts the nested runner and invokes the recovered source-readable Lutris helper and exact-build Heap Fix.
 
-## Source files now available in this PR
+## Source files in the repository
 
 - `install.sh`
 - `proton/setup-jinteia.sh`
@@ -14,7 +14,7 @@ The proposed `install.sh` downloads the existing pinned v0.2 `.run` asset, verif
 - Heap tests: `heap/tests/test_heap_fix.py`, `test_terminal.py`, `test_upgrade.py`
 - Basic CI: `.github/workflows/installer-checks.yml`
 
-The corresponding Wine source-diff review is in [draft PR #5](https://github.com/DtyPnt71/Jinteia_Nihor2_linux/pull/5). Revised user documentation is in [draft PR #4](https://github.com/DtyPnt71/Jinteia_Nihor2_linux/pull/4).
+Wine source patches were merged through [PR #5](https://github.com/DtyPnt71/Jinteia_Nihor2_linux/pull/5); consolidated user documentation through [PR #9](https://github.com/DtyPnt71/Jinteia_Nihor2_linux/pull/9).
 
 ## Confirmed on a working Linux installation (read-only)
 
