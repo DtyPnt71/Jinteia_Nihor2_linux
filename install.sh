@@ -5,6 +5,21 @@
 set -euo pipefail
 umask 077
 
+# Route interactive installs through the readable UI. Scripted checks and
+# non-interactive callers retain the tested core behavior.
+if [[ "${JINTEIA_UI_INTERNAL:-0}" != 1 ]]; then
+  case "${1:-}" in
+    --demo|--webview2-only)
+      exec bash "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/scripts/installer-ui.sh" "$@" ;;
+  esac
+  if [[ -t 0 && -t 1 ]]; then
+    case "${1:-}" in
+      ''|--mode)
+        exec bash "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/scripts/installer-ui.sh" "$@" ;;
+    esac
+  fi
+fi
+
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 RUNNER_NAME='Jinteia-Proton-0.2'
 ASSET='Jinteia-Proton-0.2-installer.run'
