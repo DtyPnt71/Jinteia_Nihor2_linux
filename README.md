@@ -9,6 +9,7 @@
 ```bash
 bash install.sh --demo --lang de  # Deutsch
 bash install.sh --demo --lang en  # English
+bash install.sh --simulate-install --lang de  # Echter Test im temporären Ordner
 ```
 
 The redesigned installer offers **Deutsch / English at startup** (or `--lang de` / `--lang en`). Native Lutris setup, stage progress, logs and optional Microsoft WebView2 x64 download are documented in [Installer UI](docs/INSTALLER_UI.md). **This is not yet a published release.**
