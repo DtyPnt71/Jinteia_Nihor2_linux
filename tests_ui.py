@@ -170,7 +170,7 @@ head -c 150000 /dev/zero >> "$out"
 
     def test_temporary_install_simulation_uses_only_isolated_core(self):
         """Mock the existing real-binary test-heap backend; never touch actual Lutris."""
-        for lang, answer, expected in [('de', 'j\n', 'Installationstest erfolgreich'),
+        for lang, answer, expected in [('de', 'j\n', 'Heap-Fix-Test erfolgreich'),
                                        ('en', 'y\n', 'test passed')]:
             with self.subTest(lang=lang), tempfile.TemporaryDirectory() as td:
                 root = Path(td)
