@@ -175,19 +175,26 @@ choose_language() {
 line() { printf '  %s────────────────────────────────────────────────────────%s\n' "$DIM" "$RESET"; }
 brand() {
   local cols
-  cols="$(tput cols 2>/dev/null || printf '80')"
+  cols="${COLUMNS:-$(tput cols 2>/dev/null || printf '80')}"
   [[ "$cols" =~ ^[0-9]+$ ]] || cols=80
-  printf '\n'
-  if (( cols >= 78 )); then
-    printf '  %s%s%s%s%s%s\n' "$GOLD" ' ███ ████ █  █ ████ ████ ████  ██ ' "$RESET" "$ACCENT" '     ███  ███   ██  ████  ██  █  █' "$RESET"
-    printf '  %s%s%s%s%s%s\n' "$GOLD" '   █  ██  ██ █  ██  █     ██  █  █' "$RESET" "$ACCENT" '     █  █ █  █ █  █  ██  █  █ ██ █' "$RESET"
-    printf '  %s%s%s%s%s%s\n' "$GOLD" '   █  ██  █ ██  ██  ███   ██  ████' "$RESET" "$ACCENT" '████ ███  ███  █  █  ██  █  █ █ ██' "$RESET"
-    printf '  %s%s%s%s%s%s\n' "$GOLD" '█  █  ██  █  █  ██  █     ██  █  █' "$RESET" "$ACCENT" '     █    █  █ █  █  ██  █  █ █  █' "$RESET"
-    printf '  %s%s%s%s%s%s\n' "$GOLD" ' ██  ████ █  █  ██  ████ ████ █  █' "$RESET" "$ACCENT" '     █    █  █  ██   ██   ██  █  █' "$RESET"
-  else
-    printf '  %s%sJINTEIA%s%s-PROTON%s\n' "$GOLD" "$BOLD" "$RESET" "$ACCENT" "$RESET"
+  local LOGO_IVORY='' LOGO_MUTED=''
+  if (( COLOR )); then
+    LOGO_IVORY=$'\033[38;5;255m'
+    LOGO_MUTED=$'\033[38;5;109m'
   fi
-  printf '\n  %sby DtyPnt71 / Burarion%s\n' "$DIM" "$RESET"
+  printf '\n'
+  if (( cols >= 61 )); then
+    printf '  %s%s%s\n' "$LOGO_IVORY" '    _    ___   _  _    _____   _____   ___     _   ' "$RESET"
+    printf '  %s%s%s\n' "$LOGO_IVORY" '   | |  |_ _| | \| |  |_   _| | ____| |_ _|   /_\  ' "$RESET"
+    printf '  %s%s%s\n' "$LOGO_IVORY" '_  | |   | |  | .` |    | |   |  _|    | |   / _ \ ' "$RESET"
+    printf '  %s%s%s\n' "$LOGO_IVORY" '| |_| |  | |  | |\ |    | |   | |___   | |  / ___ \' "$RESET"
+    printf '  %s%s%s\n' "$LOGO_IVORY" ' \___/  |___| |_| \_|   |_|   |_____| |___| /_/   \_\' "$RESET"
+    printf '\n'
+    printf '      %s──────────────── %sP R O T O N%s %s────────────────%s\n' "$DIM" "$LOGO_MUTED" "$RESET" "$DIM" "$RESET"
+  else
+    printf '  %s%sJINTEIA%s  %sP R O T O N%s\n' "$LOGO_IVORY" "$BOLD" "$RESET" "$LOGO_MUTED" "$RESET"
+  fi
+  printf '  %sby DtyPnt71 / Burarion%s\n' "$DIM" "$RESET"
   line
 }
 brand
