@@ -26,7 +26,7 @@ class BilingualUITests(unittest.TestCase):
             p = self.run_cmd('bash', UI, '--lang', 'de', '--demo',
                              env={'HOME': root, 'XDG_STATE_HOME': root + '/state'})
             self.assertEqual(p.returncode, 0, p.stderr)
-            for s in ('████', 'by DtyPnt71 / Burarion', 'VORBEREITUNG',
+            for s in ('P R O T O N', 'by DtyPnt71 / Burarion', 'VORBEREITUNG',
                       'Proton herunterladen', 'NÄCHSTE SCHRITTE', 'Keine Spieldateien'):
                 self.assertIn(s, p.stdout)
             self.assertEqual(list(Path(root).iterdir()), [])
@@ -36,11 +36,21 @@ class BilingualUITests(unittest.TestCase):
             p = self.run_cmd('bash', UI, '--lang', 'en', '--demo',
                              env={'HOME': root, 'XDG_STATE_HOME': root + '/state'})
             self.assertEqual(p.returncode, 0, p.stderr)
-            for s in ('████', 'PREPARATION', 'Download Proton',
+            for s in ('P R O T O N', 'PREPARATION', 'Download Proton',
                       'NEXT STEPS', 'No game files changed', '7 / 7'):
                 self.assertIn(s, p.stdout)
             self.assertNotIn('VORBEREITUNG', p.stdout)
             self.assertEqual(list(Path(root).iterdir()), [])
+
+    def test_logo_has_narrow_terminal_fallback(self):
+        with tempfile.TemporaryDirectory() as home:
+            p = self.run_cmd('bash', UI, '--demo', '--lang', 'de',
+                             env={'HOME': home, 'COLUMNS': '50'})
+            self.assertEqual(p.returncode, 0, p.stderr)
+            self.assertIn('JINTEIA', p.stdout)
+            self.assertIn('P R O T O N', p.stdout)
+            self.assertNotIn('|_____|', p.stdout)
+            self.assertIn('by DtyPnt71 / Burarion', p.stdout)
 
     def test_language_selection_in_real_pseudo_terminal(self):
         # Only the demo is invoked; pty checks the actual 1/2 language menu.
