@@ -259,7 +259,7 @@ run_temporary_simulation() {
 
   local dir="${XDG_STATE_HOME:-$HOME/.local/state}/jinteia-proton"
   mkdir -p -- "$dir"
-  local logfile="$dir/simulation-$(date +%Y%m%d-%H%M%S)-$.log"
+  local logfile="$dir/simulation-$(date +%Y%m%d-%H%M%S)-${BASHPID}.log"
   : > "$logfile"
   chmod 600 "$logfile"
 
@@ -278,6 +278,7 @@ run_temporary_simulation() {
   trap 'kill "$worker" 2>/dev/null || true' INT TERM
 
   local phase=0 last=0 i elapsed ticks=0 start
+  local -a sim_spin=('◐' '◓' '◑' '◒')
   start="$(date +%s)"
   while kill -0 "$worker" 2>/dev/null; do
     phase=0
@@ -292,7 +293,7 @@ run_temporary_simulation() {
     if [[ -t 1 && phase -gt 0 ]]; then
       elapsed=$(( $(date +%s) - start ))
       printf '\r\033[2K  %s%s%s  %s  %s%d/7%s  %ds' \
-        "$ACCENT" "◐◓◑◒" "$RESET" "$(progress_bar "$((phase-1))" 20)" "$DIM" "$((phase-1))" "$RESET" "$elapsed"
+        "$ACCENT" "${sim_spin[ticks%4]}" "$RESET" "$(progress_bar "$((phase-1))" 20)" "$DIM" "$((phase-1))" "$RESET" "$elapsed"
     fi
     ((ticks+=1))
     sleep 0.35
