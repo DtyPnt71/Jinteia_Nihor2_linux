@@ -59,7 +59,7 @@ Der Installer kann die Datei optional herunterladen / The installer can optional
 
 Die Installationsskripte sind hier im Repository verfügbar. Der Runner wird aus dem bestehenden **[v0.2-Release](https://github.com/DtyPnt71/Jinteia_Nihor2_linux/releases/tag/v0.2)** bezogen und anhand seiner SHA-256-Prüfsumme verifiziert.
 
-The installation scripts are available in this repository. The runner is downloaded from the existing **v0.2 release** and verified using SHA-256. A new v0.3 release has **not** been published.
+The installation scripts are available in this repository. The runner is downloaded from the existing **v0.2 release** and verified using SHA-256.
 
 [Quellcode und Integrität / Source and integrity](docs/TRUST.md) · [Wine-Patches](docs/RECOVERED_PATCHES.md)
 
