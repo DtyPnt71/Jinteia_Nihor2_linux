@@ -29,10 +29,16 @@ The maintainer ran the source-readable installer's read-only `--check` and recei
 
 - Recovered original setup regression suite: **16 tests passed locally**.
 - New bootstrap unit suite: **5 tests passed locally**.
-- Separate isolated test harness using mock download/runner/Heap-Fix: **3 tests passed locally**; its source file is in the local preview but is not part of this GitHub PR yet.
+- Separate isolated test harness using mock download/runner/Heap-Fix: **4 tests passed locally**, including the new `--verify-release` mode. The integration test source is in the local review bundle, but is not yet part of this GitHub PR.
 - Basic syntax and Python compilation checks passed.
 - The CI workflow runs the original setup and bootstrap unit suites in GitHub Actions. **A green CI result is not proof of a real installation**.
 - The exact full `540 MB` release asset extraction, Lutris integration, first-run/second-run behavior on a real system, real DLL patch/restore on a clean runner, and actual game launch are **not yet verified in this PR**.
+
+## One safe next check on the maintainer's CachyOS system
+
+From a fresh clone of this draft branch, execute `bash install.sh --verify-release`. It downloads the published ~540 MB `.run`, checks the published SHA-256, extracts the nested runner archive into a temporary directory and compares the **original 64-bit DLL** against `ORIGINAL_SHA256`. It **does not** install the runner, touch Lutris, change a prefix or patch any DLL, and it deletes the temporary download after the check. A significant amount of free disk space is needed temporarily.
+
+The full release payload was not downloaded in this environment; the check has so far passed only with synthetic offline test fixtures. Do not use the plain `bash install.sh` install action on the existing functioning Jinteia-Proton-0.2 runner.
 
 ## Release gates
 
