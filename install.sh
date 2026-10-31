@@ -28,6 +28,7 @@ Usage:
   bash install.sh --dry-run        Explain planned changes (NO downloads or writes)
   bash install.sh --check         Read-only status of the existing DLL and backup
   bash install.sh --verify-release Download/verify actual release archive only (no installation)
+  bash install.sh --test-heap     Isolated test: patch, verify and restore in a temporary directory
   bash install.sh --heap-only     Apply the matching Heap Fix to existing runner
   bash install.sh --runner PATH   Choose the installed runner for Heap Fix explicitly
   bash install.sh --mode MODE     Use auto, native, or flatpak Lutris selection
@@ -45,6 +46,7 @@ while (( $# )); do
     --heap-only) ACTION='heap-only'; shift ;;
     --check) ACTION='check'; shift ;;
     --verify-release) ACTION='verify-release'; shift ;;
+    --test-heap) ACTION='test-heap'; shift ;;
     --mode) (( $# >= 2 )) || die '--mode requires a value'; MODE="$2"; shift 2 ;;
     --runner) (( $# >= 2 )) || die '--runner requires a path'; HEAP_RUNNER="$2"; shift 2 ;;
     *) die "Unknown option: $1 (try --help)" ;;
@@ -111,11 +113,22 @@ if [[ "$ACTION" == install ]]; then
   read -r -p 'Proceed with installation? [y/N] ' answer
   case "$answer" in y|Y|yes|YES) ;; *) say 'Cancelled; no changes made.'; exit 0 ;; esac
 else
-  say 'Read-only release verification selected: no Lutris/runner/prefix changes.'
+  if [[ "$ACTION" == test-heap ]]; then
+    say 'Isolated Heap-Fix test: writes only to a temporary test runner (no Lutris/prefix changes).'
+  else
+    say 'Read-only release verification selected: no Lutris/runner/prefix changes.'
+  fi
 fi
 
 TMP="$(mktemp -d "${TMPDIR:-/tmp}/jinteia-source-installer.XXXXXXXX")"
 trap 'rm -rf -- "$TMP"' EXIT
+
+if [[ "$ACTION" == test-heap ]]; then
+  command -v df >/dev/null 2>&1 || die 'df is required for a safe temporary storage check.'
+  free_kib="$(df -Pk "$TMP" | awk 'NR == 2 {print $4}')"
+  [[ "$free_kib" =~ ^[0-9]+$ ]] || die 'Could not determine available temporary space.'
+  (( free_kib >= 4194304 )) || die 'Isolated test needs at least 4 GiB free at TMPDIR. Choose a filesystem with sufficient space and retry.'
+fi
 
 download="$TMP/$ASSET"
 say 'Downloading v0.2 release package (~540 MB)'
@@ -137,7 +150,7 @@ say 'Extracting verified runner payload without running the .run wrapper'
 tail -n +"$line" "$download" | tar -xzOf - "payload/$RUNNER_NAME.tar.gz" > "$runner_archive" || die 'Cannot locate the expected nested runner archive.'
 [[ -s "$runner_archive" ]] || die 'Empty runner archive.'
 
-if [[ "$ACTION" == 'verify-release' ]]; then
+if [[ "$ACTION" == 'verify-release' || "$ACTION" == 'test-heap' ]]; then
   say 'Checking original 64-bit DLL inside verified release'
   member="$(tar -tzf "$runner_archive" | awk -v p="$RUNNER_NAME/files/lib/wine/x86_64-windows/ntdll.dll" '($0 == p || $0 == "./" p) && !found { print; found=1 }')"
   [[ -n "$member" ]] || die 'The released runner archive contains no matching 64-bit DLL path.'
@@ -148,7 +161,48 @@ if [[ "$ACTION" == 'verify-release' ]]; then
   fi
   say 'RELEASE VERIFIED: asset checksum, nested runner archive, and original 64-bit DLL match.'
   printf 'SHA-256: %s\nOriginal DLL SHA-256: %s\n' "$EXPECTED_SHA256" "$actual_dll_sha"
-  say 'No installer scripts, Wine runner or Heap Fix were executed.'
+  if [[ "$ACTION" == verify-release ]]; then
+    say 'No installer scripts, Wine runner or Heap Fix were executed.'
+    exit 0
+  fi
+
+  # Isolated real-binary verification: only the matched, verified archive is
+  # extracted under the mktemp directory. No Lutris settings or runner roots.
+  # Reject unsafe absolute/parent member paths before extraction, as the
+  # regular installer helper already does.
+  say 'Checking runner archive member paths before temporary extraction'
+  local_members="$TMP/runner-members.txt"
+  tar -tzf "$runner_archive" > "$local_members" || die 'Runner archive listing failed.'
+  while IFS= read -r entry; do
+    normalized="$entry"
+    while [[ "$normalized" == ./* ]]; do normalized="${normalized#./}"; done
+    [[ -z "$normalized" || "$normalized" == . ]] && continue
+    case "/$normalized/" in */../*) die "Unsafe archive path: $entry" ;; esac
+    [[ "$normalized" == "$RUNNER_NAME" || "$normalized" == "$RUNNER_NAME/"* ]] || die "Unexpected runner archive member: $entry"
+  done < "$local_members"
+
+  sandbox="$TMP/isolated-runner"
+  mkdir -p "$sandbox"
+  say 'Extracting released runner into private temporary test area'
+  tar -xzf "$runner_archive" --no-same-owner -C "$sandbox" || die 'Temporary runner extraction failed.'
+  test_runner="$sandbox/$RUNNER_NAME"
+  test_dll="$test_runner/files/lib/wine/x86_64-windows/ntdll.dll"
+  [[ -f "$test_runner/proton" && -f "$test_dll" && ! -L "$test_dll" ]] || die 'Expected test files are missing or the DLL is a symlink.'
+  [[ "$(sha256sum "$test_dll" | awk '{print $1}')" == "$EXPECTED_ORIGINAL_DLL_SHA256" ]] || die 'Temporary test DLL does not match original build.'
+
+  # The recovered Heap Fix saves diagnostics by default. Redirect its state
+  # data inside TMP as well so the test leaves no personal-files changes.
+  export XDG_STATE_HOME="$TMP/test-state"
+  say 'Applying real Heap-Fix1+2 to the isolated test DLL'
+  python3 "$HEAP" apply --runner "$test_runner" || die 'Real-binary isolated Heap Fix application failed.'
+  [[ "$(sha256sum "$test_dll" | awk '{print $1}')" == '7b925e64a014111f80a1be831866f4d38f34c51abc35640ea87a6926716b021f' ]] || die 'Patched DLL checksum mismatch.'
+  test_backup="$test_dll.jinteia-heap-test1.original"
+  [[ -f "$test_backup" && "$(sha256sum "$test_backup" | awk '{print $1}')" == "$EXPECTED_ORIGINAL_DLL_SHA256" ]] || die 'Original DLL backup was not verified.'
+  say 'Heap Fix installed with expected patch and backup hashes; testing restore'
+  python3 "$HEAP" restore --runner "$test_runner" || die 'Real-binary isolated restore failed.'
+  [[ "$(sha256sum "$test_dll" | awk '{print $1}')" == "$EXPECTED_ORIGINAL_DLL_SHA256" ]] || die 'Restored DLL checksum mismatch.'
+  say 'ISOLATED HEAP TEST PASSED: real original DLL patched, backup verified, then restored byte-for-byte.'
+  say 'Temporary test runner will be removed automatically; installed Lutris/runner/prefix remain unchanged.'
   exit 0
 fi
 
