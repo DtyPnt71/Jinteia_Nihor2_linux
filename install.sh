@@ -5,6 +5,21 @@
 set -euo pipefail
 umask 077
 
+# Route interactive installs through the readable UI. Scripted checks and
+# non-interactive callers retain the tested core behavior.
+if [[ "${JINTEIA_UI_INTERNAL:-0}" != 1 ]]; then
+  case "${1:-}" in
+    --demo|--webview2-only)
+      exec bash "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/scripts/installer-ui.sh" "$@" ;;
+  esac
+  if [[ -t 0 && -t 1 ]]; then
+    case "${1:-}" in
+      ''|--mode)
+        exec bash "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/scripts/installer-ui.sh" "$@" ;;
+    esac
+  fi
+fi
+
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 RUNNER_NAME='Jinteia-Proton-0.2'
 ASSET='Jinteia-Proton-0.2-installer.run'
@@ -31,7 +46,9 @@ Usage:
   bash install.sh --test-heap     Isolated test: patch, verify and restore in a temporary directory
   bash install.sh --heap-only     Apply the matching Heap Fix to existing runner
   bash install.sh --runner PATH   Choose the installed runner for Heap Fix explicitly
-  bash install.sh --mode MODE     Use auto, native, or flatpak Lutris selection
+  bash install.sh --mode MODE     Native Lutris recommended; Flatpak not supported by the UI
+  bash install.sh --demo          UI preview without downloads or changes
+  bash install.sh --webview2-only Optional official Microsoft x64 download
   bash install.sh --help
 
 Requires the game and Lutris to be closed. Never run with sudo.
@@ -53,6 +70,10 @@ while (( $# )); do
   esac
 done
 case "$MODE" in auto|native|flatpak) ;; *) die "Invalid mode: $MODE" ;; esac
+if [[ "$ACTION" == install ]]; then
+  [[ "$MODE" != flatpak ]] || die 'Flatpak-Lutris is not supported by this installer. Use native Lutris.'
+  MODE=native
+fi
 [[ -f "$SETUP" && -f "$SCRIPT_DIR/proton/tools/create_lutris_entry.py" && -f "$HEAP" && -f "$SCRIPT_DIR/heap/heap_core.py" && -f "$SCRIPT_DIR/heap/binary_patch.py" ]] || die 'Required public source files are missing.'
 
 say 'What this installer will do'

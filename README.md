@@ -4,6 +4,14 @@
 
 # Jinteia / Nihor2 on Linux
 
+> **New terminal UI (review branch):** preview the installer without making changes:
+
+```bash
+bash install.sh --demo
+```
+
+Native Lutris setup, a clearer progress display, log files and optional Microsoft WebView2 x64 download are documented in [Installer UI](docs/INSTALLER_UI.md). **This is not yet a published release.**
+
 > **Under review: source-readable installer** — see [instructions and test status](docs/SOURCE_INSTALLER_PREVIEW.md). This feature branch has passed native CachyOS installation and repeat-install protection tests, but the new-user game launch and WebView2 setup are not verified. The published v0.2 release is unchanged.
 
 Run **Nihor2 / Chronicles of Jinteia** on Linux with Lutris using a custom Proton build.
