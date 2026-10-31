@@ -67,7 +67,7 @@ Game files must only be downloaded through the official Jinteia Discord server. 
 | `patches/` | Dokumentierte Wine-Anpassungen / Documented Wine patches |
 | `docs/` | Anleitungen und technische Dokumentation / Guides and technical documentation |
 
-### Downloads & Versions / Releases
+### Versions / Releases
 
 Die Installationsskripte sind hier im Repository verfügbar. Der Runner wird aus dem bestehenden **[v0.2-Release](https://github.com/DtyPnt71/Jinteia_Nihor2_linux/releases/tag/v0.2)** bezogen und anhand seiner SHA-256-Prüfsumme verifiziert.
 
