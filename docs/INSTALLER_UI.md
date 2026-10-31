@@ -10,7 +10,7 @@
 bash install.sh
 ```
 
-Beim Start **1 Deutsch** oder **2 English** wählen, oder direkt `bash install.sh --lang de` ausführen. Der Schriftzug **JINTEIA-PROTON** erscheint als zweifarbiges Terminal-Logo mit den Credits darunter (kompakte Variante in schmalen Terminals). Die Oberfläche zeigt Vorbereitung, Installation und Abschluss mit einem Fortschrittsbalken für die **abgeschlossenen Schritte** – nicht für den Download in Prozent. Während des Downloads zeigt sie zusätzlich die **tatsächlich heruntergeladenen MiB und die gemessene Geschwindigkeit in MiB/s oder KiB/s**.
+Beim Start **1 Deutsch** oder **2 English** wählen, oder direkt `bash install.sh --lang de` ausführen. Das Terminal zeigt **JINTEIA** als zentrierten, schrägen ASCII-Schriftzug mit **P R O T O N** und `by DtyPnt71 / Burarion` jeweils mittig darunter. Unter 66 Terminalspalten wird stattdessen eine kompakte Wortmarke angezeigt. Die Oberfläche zeigt Vorbereitung, Installation und Abschluss mit einem Fortschrittsbalken für die **abgeschlossenen Schritte** – nicht für den Download in Prozent. Während des Downloads zeigt sie zusätzlich die **tatsächlich heruntergeladenen MiB und die gemessene Geschwindigkeit in MiB/s oder KiB/s**.
 
 Wenn natives Lutris fehlt, bietet das Setup nach Bestätigung einen Paketmanager-Befehl für Arch/CachyOS, Debian/Ubuntu, Fedora oder openSUSE an. Nur die Betriebssystem-Paketinstallation benötigt eventuell `sudo`. **Für die Proton-Installation niemals `sudo` verwenden.** Flatpak-Lutris ist für diesen Installer **nicht unterstützt**; nutze die native Version.
 
@@ -48,7 +48,7 @@ Nach einer Sicherheitsabfrage wird das veröffentlichte v0.2-Paket (~515 MiB) he
 bash install.sh
 ```
 
-Choose **1 Deutsch** or **2 English** at startup, or use `bash install.sh --lang en`. The two-tone **JINTEIA-PROTON** terminal wordmark appears above the maintainer credits (with a compact fallback for narrow terminals). The UI shows preparation, installation and completion with **stage-based** progress, not a fabricated download percentage. During download it also reports the **actual received MiB and measured throughput in MiB/s or KiB/s**, derived from the growing release file.
+Choose **1 Deutsch** or **2 English** at startup, or use `bash install.sh --lang en`. The terminal displays a centered, slanted ASCII **JINTEIA** wordmark, with **P R O T O N** and `by DtyPnt71 / Burarion` centered below. Below 66 terminal columns, a compact single-line wordmark replaces the large art. The UI shows preparation, installation and completion with **stage-based** progress, not a fabricated download percentage. During download it also reports the **actual received MiB and measured throughput in MiB/s or KiB/s**, derived from the growing release file.
 
 If native Lutris is missing, setup offers to install it via the distro package manager (Arch/CachyOS, Debian/Ubuntu, Fedora or openSUSE) **only with confirmation**. The system package manager may need `sudo`; **do not run the Proton installer with `sudo`**. Flatpak Lutris is **unsupported by this installer**; install native Lutris.
 
