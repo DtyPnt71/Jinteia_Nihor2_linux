@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Jinteia-Proton source-readable installer preview — DtyPnt71.
-# This preview uses the VERIFIED existing v0.2 .run as a transport archive,
+# Jinteia-Proton installer — DtyPnt71 / Burarion.
+# Uses the checksum-pinned v0.2 release as a transport archive,
 # but NEVER EXECUTES the .run wrapper. The setup and Heap-Fix source lives here.
 set -euo pipefail
 umask 077
@@ -36,27 +36,27 @@ say() { printf '\n==> %s\n' "$*"; }
 die() { printf '\nERROR: %s\n' "$*" >&2; exit 1; }
 usage() {
   cat <<'HELP'
-Jinteia-Proton v0.2 — source-readable installation preview
+Jinteia-Proton — Installer (v0.2 runner)
 
 Usage:
   bash install.sh                  Install runner, then apply matching Heap Fix
-  bash install.sh --dry-run        Explain planned changes (NO downloads or writes)
+  bash install.sh --dry-run        Show the planned installation steps
   bash install.sh --check         Read-only status of the existing DLL and backup
   bash install.sh --verify-release Download/verify actual release archive only (no installation)
   bash install.sh --test-heap     Isolated test: patch, verify and restore in a temporary directory
   bash install.sh --heap-only     Apply the matching Heap Fix to existing runner
   bash install.sh --runner PATH   Choose the installed runner for Heap Fix explicitly
   bash install.sh --mode MODE     Native Lutris recommended; Flatpak not supported by the UI
-  bash install.sh --demo          Bilingual UI preview without downloads or changes
-  bash install.sh --simulate-install  Real temporary runner + Heap Fix test (no Lutris changes)
+  bash install.sh --demo          Show the terminal interface without installing
+  bash install.sh --simulate-install  Verify the runner and Heap Fix in a temporary directory
   bash install.sh --lang de       Start in German / Deutsch
   bash install.sh --lang en       Start in English
   bash install.sh --webview2-only Optional official Microsoft x64 download
   bash install.sh --help
 
 Requires the game and Lutris to be closed. Never run with sudo.
-This is a preview, NOT a fully tested replacement for the v0.2 release.
-WebView2 and the official Jinteia patcher still need manual setup.
+Downloads the published v0.2 runner and verifies its SHA-256 checksum.
+WebView2 and the official Jinteia patcher still require manual setup.
 HELP
 }
 while (( $# )); do
