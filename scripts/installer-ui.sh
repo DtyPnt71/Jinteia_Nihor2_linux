@@ -61,6 +61,17 @@ declare -A DE=(
   [unchanged]='Keine Spieldateien verändert. WebView2 wird nie automatisch ausgeführt.'
   [demo_info]='Nur Vorschau: keine Downloads oder Änderungen.'
   [demo_done]='Vorschau abgeschlossen. Installationsdateien wurden nicht verändert.'
+  [sim_mode]='TEMPORÄRER INSTALLATIONSTEST' [sim_target]='Isolierter Runner'
+  [sim_about]='Testet das echte Proton-Release und den Heap-Fix in einem temporären Verzeichnis.'
+  [sim_disk]='Benötigt ca. 4 GiB freien temporären Speicher. Lutris und deine Installation bleiben unverändert.'
+  [sim_confirm]='Test starten und Release herunterladen?'
+  [sim_download]='Release herunterladen' [sim_verify]='SHA-256 verifizieren'
+  [sim_archive]='Runner-Archiv extrahieren' [sim_temp]='Temporären Runner vorbereiten'
+  [sim_patch]='Heap-Fix auf Testkopie anwenden' [sim_restore]='Original-DLL wiederherstellen'
+  [sim_final]='Prüfungen abschließen'
+  [sim_finished]='Temporärer Installations- und Heap-Fix-Test erfolgreich.'
+  [sim_cleanup]='Testkopie automatisch entfernt. Lutris und installierter Runner wurden nicht verändert.'
+  [sim_failed]='Temporärer Installationstest fehlgeschlagen. Details im Prüfprotokoll.'
   [invalid_mode]='Nur natives Lutris wird unterstützt. Flatpak bitte nicht verwenden.'
   [bad_lang]='Sprache: de oder en auswählen.'
 )
@@ -103,6 +114,17 @@ declare -A EN=(
   [unchanged]='No game files changed. WebView2 is never executed automatically.'
   [demo_info]='Preview only: no downloads or changes.'
   [demo_done]='Preview complete. Installation files were not modified.'
+  [sim_mode]='TEMPORARY INSTALL TEST' [sim_target]='Isolated runner'
+  [sim_about]='Tests the real Proton release and Heap Fix inside a temporary directory.'
+  [sim_disk]='Requires approximately 4 GiB of free temporary space. Lutris and your installation stay unchanged.'
+  [sim_confirm]='Start the test and download the release?'
+  [sim_download]='Download release' [sim_verify]='Verify SHA-256'
+  [sim_archive]='Extract runner archive' [sim_temp]='Prepare temporary runner'
+  [sim_patch]='Patch isolated DLL' [sim_restore]='Restore original DLL'
+  [sim_final]='Complete validation'
+  [sim_finished]='Temporary installation and Heap Fix test passed.'
+  [sim_cleanup]='Temporary runner removed automatically. Lutris and the installed runner were not modified.'
+  [sim_failed]='Temporary installation test failed. See the diagnostic log.'
   [invalid_mode]='Only native Lutris is supported. Do not use Flatpak here.'
   [bad_lang]='Choose language de or en.'
 )
@@ -115,6 +137,7 @@ Jinteia Proton | by DtyPnt71 / Burarion
   bash install.sh --lang de       Deutsch
   bash install.sh --lang en       English
   bash install.sh --demo          UI preview; no changes
+  bash install.sh --simulate-install  Real temporary runner/Heap Fix test (no Lutris changes)
   bash install.sh --webview2-only Official Microsoft WebView2 x64 download
   bash install.sh --mode native   Native Lutris (required)
 
@@ -127,6 +150,7 @@ while (( $# )); do
     --lang|--language) (( $# >= 2 )) || { printf 'Missing language.\n' >&2; exit 2; }; LANG_CHOICE="$2"; shift 2 ;;
     --mode) (( $# >= 2 )) || { printf 'Missing Lutris mode.\n' >&2; exit 2; }; MODE="$2"; shift 2 ;;
     --demo) ACTION=demo; shift ;;
+    --simulate-install) ACTION=simulate; shift ;;
     --webview2-only) ACTION=webview; shift ;;
     --help|-h) usage; exit 0 ;;
     *) printf 'Unknown UI option: %s\n' "$1" >&2; exit 2 ;;
@@ -157,7 +181,10 @@ brand() {
 }
 brand
 choose_language
-printf '  %s%s%s  /  v0.2  /  %s\n\n' "$BOLD" "$(tr mode)" "$RESET" "$(tr native)"
+display_mode="$(tr mode)"
+display_target="$(tr native)"
+if [[ "$ACTION" == simulate ]]; then display_mode="$(tr sim_mode)"; display_target="$(tr sim_target)"; fi
+printf '  %s%s%s  /  v0.2  /  %s\n\n' "$BOLD" "$display_mode" "$RESET" "$display_target"
 section() { printf '\n  %s%s%s\n' "$BOLD" "$(tr "$1")" "$RESET"; line; }
 message() { printf '  %s%s%s  %s\n' "$ACCENT" '·' "$RESET" "$1"; }
 warning() { printf '  %s!%s  %s\n' "$GOLD" "$RESET" "$1"; }
@@ -220,6 +247,75 @@ print_next() {
   message "$(tr unchanged)"
 }
 if [[ "$ACTION" == demo ]]; then show_demo; exit 0; fi
+
+# Real binary installation rehearsal. The core --test-heap mode downloads the
+# pinned release, extracts a temporary runner, applies the exact-build fix,
+# verifies the backup and restores the original DLL. It never calls Lutris.
+run_temporary_simulation() {
+  section install
+  message "$(tr sim_about)"
+  message "$(tr sim_disk)"
+  if ! confirm "$(tr sim_confirm)"; then message "$(tr cancelled)"; return 0; fi
+
+  local dir="${XDG_STATE_HOME:-$HOME/.local/state}/jinteia-proton"
+  mkdir -p -- "$dir"
+  local logfile="$dir/simulation-$(date +%Y%m%d-%H%M%S)-$.log"
+  : > "$logfile"
+  chmod 600 "$logfile"
+
+  local -a labels=(sim_download sim_verify sim_archive sim_temp sim_patch sim_restore sim_final)
+  local -a markers=(
+    '==> Downloading v0.2 release package'
+    '==> Verifying published SHA-256'
+    '==> Extracting verified runner payload'
+    '==> Extracting released runner into private temporary test area'
+    '==> Applying real Heap-Fix1+2 to the isolated test DLL'
+    '==> Heap Fix installed with expected patch and backup hashes; testing restore'
+    '==> ISOLATED HEAP TEST PASSED'
+  )
+  ( JINTEIA_UI_INTERNAL=1 bash "$ROOT/install.sh" --test-heap ) > "$logfile" 2>&1 &
+  local worker=$!
+  trap 'kill "$worker" 2>/dev/null || true' INT TERM
+
+  local phase=0 last=0 i elapsed ticks=0 start
+  start="$(date +%s)"
+  while kill -0 "$worker" 2>/dev/null; do
+    phase=0
+    for ((i=6;i>=0;i--)); do
+      if grep -Fq "${markers[i]}" "$logfile"; then phase=$((i+1)); break; fi
+    done
+    if ((phase > last)); then
+      if [[ -t 1 ]]; then printf '\r\033[2K'; fi
+      printf '  %s●%s  %02d/07  %s\n' "$ACCENT" "$RESET" "$phase" "$(tr "${labels[phase-1]}")"
+      last="$phase"
+    fi
+    if [[ -t 1 && phase -gt 0 ]]; then
+      elapsed=$(( $(date +%s) - start ))
+      printf '\r\033[2K  %s%s%s  %s  %s%d/7%s  %ds' \
+        "$ACCENT" "◐◓◑◒" "$RESET" "$(progress_bar "$((phase-1))" 20)" "$DIM" "$((phase-1))" "$RESET" "$elapsed"
+    fi
+    ((ticks+=1))
+    sleep 0.35
+  done
+  local rc=0
+  wait "$worker" || rc=$?
+  trap - INT TERM
+  if [[ -t 1 ]]; then printf '\r\033[2K'; fi
+  if ((rc != 0)) || ! grep -Fq '==> ISOLATED HEAP TEST PASSED' "$logfile"; then
+    error "$(tr sim_failed)"
+    message "$(tr log): $logfile"
+    tail -n 10 "$logfile" | sed 's/^/    /'
+    return 1
+  fi
+  section finish
+  for i in "${labels[@]}"; do success "$(tr "$i")"; done
+  printf '\n  %s%s%s  %s7 / 7%s\n' "$ACCENT" "$(progress_bar 7)" "$RESET" "$DIM" "$RESET"
+  success "$(tr sim_finished)"
+  message "$(tr sim_cleanup)"
+  message "$(tr log): $logfile"
+}
+if [[ "$ACTION" == simulate ]]; then run_temporary_simulation; exit $?; fi
+
 
 # Native Lutris only: never install or launch Flatpak as a fallback.
 if command -v flatpak >/dev/null 2>&1 && flatpak info net.lutris.Lutris >/dev/null 2>&1; then
