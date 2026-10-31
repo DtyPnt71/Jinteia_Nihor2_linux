@@ -269,6 +269,7 @@ update_speed() {
   speed_prior_ms=$now
   speed_display="$((bytes / 1048576)).$(((bytes % 1048576) * 10 / 1048576)) MiB"
   [[ -n "$speed_rate" ]] && speed_display+="  ·  $speed_rate"
+  return 0
 }
 show_demo() {
   message "$(tr demo_info)"
