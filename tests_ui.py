@@ -168,5 +168,112 @@ head -c 150000 /dev/zero >> "$out"
             self.assertFalse((Path(root) / 'Downloads').exists())
 
 
+    def test_temporary_install_simulation_uses_only_isolated_core(self):
+        """Mock the existing real-binary test-heap backend; never touch actual Lutris."""
+        for lang, answer, expected in [('de', 'j\n', 'Installationstest erfolgreich'),
+                                       ('en', 'y\n', 'test passed')]:
+            with self.subTest(lang=lang), tempfile.TemporaryDirectory() as td:
+                root = Path(td)
+                (root / 'scripts').mkdir()
+                (root / 'scripts/installer-ui.sh').write_bytes(UI.read_bytes())
+                fake = root / 'install.sh'
+                fake.write_text("""#!/usr/bin/env bash
+[[ "$1" == "--test-heap" ]] || exit 99
+echo '==> Downloading v0.2 release package'
+echo '==> Verifying published SHA-256'
+echo '==> Extracting verified runner payload'
+echo '==> Extracting released runner into private temporary test area'
+echo '==> Applying real Heap-Fix1+2 to the isolated test DLL'
+echo '==> Heap Fix installed with expected patch and backup hashes; testing restore'
+echo '==> ISOLATED HEAP TEST PASSED'
+""")
+                # An installed runner must not prevent this test or be modified.
+                runner = root / 'home/.local/share/lutris/runners/wine/Jinteia-Proton-0.2'
+                runner.mkdir(parents=True)
+                (runner / 'proton').write_text('UNTOUCHED')
+                env = {**os.environ, 'HOME': str(root / 'home'),
+                       'XDG_STATE_HOME': str(root / 'home/state'),
+                       'NO_COLOR': '1', 'TERM': 'xterm'}
+                master, slave = pty.openpty()
+                p = subprocess.Popen(
+                    ['bash', str(root / 'scripts/installer-ui.sh'),
+                     '--simulate-install', '--lang', lang],
+                    env=env, stdin=slave, stdout=slave, stderr=slave,
+                    start_new_session=True)
+                os.close(slave)
+                output = bytearray()
+                try:
+                    deadline = time.monotonic() + 12
+                    sent = False
+                    while time.monotonic() < deadline:
+                        ready, _, _ = select.select([master], [], [], 0.2)
+                        if ready:
+                            try:
+                                output.extend(os.read(master, 65536))
+                            except OSError:
+                                pass
+                        if not sent and (b'[j/N]' in output or b'[y/N]' in output):
+                            os.write(master, answer.encode())
+                            sent = True
+                        if p.poll() is not None:
+                            break
+                    self.assertIsNotNone(p.poll(), output.decode(errors='replace'))
+                    self.assertEqual(p.returncode, 0, output.decode(errors='replace'))
+                    self.assertIn(expected, output.decode(errors='replace'))
+                    self.assertEqual((runner / 'proton').read_text(), 'UNTOUCHED')
+                    logs = list((root / 'home/state/jinteia-proton').glob('simulation-*.log'))
+                    self.assertEqual(len(logs), 1)
+                    self.assertIn('ISOLATED HEAP TEST PASSED', logs[0].read_text())
+                finally:
+                    if p.poll() is None:
+                        p.kill()
+                    p.wait(timeout=5)
+                    os.close(master)
+
+    def test_temporary_install_simulation_reports_backend_failure(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            (root / 'scripts').mkdir()
+            (root / 'scripts/installer-ui.sh').write_bytes(UI.read_bytes())
+            (root / 'install.sh').write_text(
+                '#!/usr/bin/env bash\n[[ "$1" == "--test-heap" ]] || exit 98\n'
+                'echo "TEST BACKEND ERROR" >&2\nexit 41\n')
+            env = {**os.environ, 'HOME': str(root), 'XDG_STATE_HOME': str(root / 'state'),
+                   'NO_COLOR': '1', 'TERM': 'xterm'}
+            master, slave = pty.openpty()
+            p = subprocess.Popen(
+                ['bash', str(root / 'scripts/installer-ui.sh'),
+                 '--simulate-install', '--lang', 'en'],
+                env=env, stdin=slave, stdout=slave, stderr=slave,
+                start_new_session=True)
+            os.close(slave)
+            output = bytearray()
+            try:
+                deadline = time.monotonic() + 12
+                sent = False
+                while time.monotonic() < deadline:
+                    ready, _, _ = select.select([master], [], [], 0.2)
+                    if ready:
+                        try:
+                            output.extend(os.read(master, 65536))
+                        except OSError:
+                            pass
+                    if not sent and b'[y/N]' in output:
+                        os.write(master, b'y\n')
+                        sent = True
+                    if p.poll() is not None:
+                        break
+                self.assertIsNotNone(p.poll())
+                self.assertNotEqual(p.returncode, 0)
+                decoded = output.decode(errors='replace')
+                self.assertIn('Temporary installation test failed', decoded)
+                self.assertIn('TEST BACKEND ERROR', decoded)
+            finally:
+                if p.poll() is None:
+                    p.kill()
+                p.wait(timeout=5)
+                os.close(master)
+
+
 if __name__ == '__main__':
     unittest.main()
