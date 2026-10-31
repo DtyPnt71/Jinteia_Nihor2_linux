@@ -70,6 +70,10 @@ while (( $# )); do
   esac
 done
 case "$MODE" in auto|native|flatpak) ;; *) die "Invalid mode: $MODE" ;; esac
+if [[ "$ACTION" == install ]]; then
+  [[ "$MODE" != flatpak ]] || die 'Flatpak-Lutris is not supported by this installer. Use native Lutris.'
+  MODE=native
+fi
 [[ -f "$SETUP" && -f "$SCRIPT_DIR/proton/tools/create_lutris_entry.py" && -f "$HEAP" && -f "$SCRIPT_DIR/heap/heap_core.py" && -f "$SCRIPT_DIR/heap/binary_patch.py" ]] || die 'Required public source files are missing.'
 
 say 'What this installer will do'
