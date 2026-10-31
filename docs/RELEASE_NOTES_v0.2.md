@@ -28,7 +28,7 @@ Under **Assets** below, download both files:
 
 ### Detailed help
 
-- **[Complete illustrated-by-steps installation guide](https://github.com/DtyPnt71/Jinteia_Nihor2_linux/blob/main/docs/INSTALLATION.md)**
+- **[Complete step-by-step installation guide](https://github.com/DtyPnt71/Jinteia_Nihor2_linux/blob/main/docs/INSTALLATION.md)**
 - **[Troubleshooting and setup logs](https://github.com/DtyPnt71/Jinteia_Nihor2_linux/blob/main/docs/TROUBLESHOOTING.md)**
 - **[Checksums, installer transparency and future .sh plans](https://github.com/DtyPnt71/Jinteia_Nihor2_linux/blob/main/docs/TRUST.md)**
 
