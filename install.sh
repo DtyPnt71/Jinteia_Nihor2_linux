@@ -9,7 +9,7 @@ umask 077
 # non-interactive callers retain the tested core behavior.
 if [[ "${JINTEIA_UI_INTERNAL:-0}" != 1 ]]; then
   case "${1:-}" in
-    --demo|--webview2-only)
+    --demo|--webview2-only|--lang|--language)
       exec bash "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/scripts/installer-ui.sh" "$@" ;;
   esac
   if [[ -t 0 && -t 1 ]]; then
@@ -47,7 +47,9 @@ Usage:
   bash install.sh --heap-only     Apply the matching Heap Fix to existing runner
   bash install.sh --runner PATH   Choose the installed runner for Heap Fix explicitly
   bash install.sh --mode MODE     Native Lutris recommended; Flatpak not supported by the UI
-  bash install.sh --demo          UI preview without downloads or changes
+  bash install.sh --demo          Bilingual UI preview without downloads or changes
+  bash install.sh --lang de       Start in German / Deutsch
+  bash install.sh --lang en       Start in English
   bash install.sh --webview2-only Optional official Microsoft x64 download
   bash install.sh --help
 
