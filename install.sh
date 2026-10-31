@@ -9,6 +9,7 @@ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 RUNNER_NAME='Jinteia-Proton-0.2'
 ASSET='Jinteia-Proton-0.2-installer.run'
 EXPECTED_SHA256='e2d73e4c36266c4c07323bd73a318f9e52e5a805f4774ae1cab8c994df9b59e7'
+EXPECTED_ORIGINAL_DLL_SHA256='ad0243384afa5fad82331dacfd7e45383b2a0c955fb8f99dd12e1cfd7d558438'
 URL='https://github.com/DtyPnt71/Jinteia_Nihor2_linux/releases/download/v0.2/Jinteia-Proton-0.2-installer.run'
 SETUP="$SCRIPT_DIR/proton/setup-jinteia.sh"
 HEAP="$SCRIPT_DIR/heap/heap-test.py"
@@ -26,6 +27,7 @@ Usage:
   bash install.sh                  Install runner, then apply matching Heap Fix
   bash install.sh --dry-run        Explain planned changes (NO downloads or writes)
   bash install.sh --check         Read-only status of the existing DLL and backup
+  bash install.sh --verify-release Download/verify actual release archive only (no installation)
   bash install.sh --heap-only     Apply the matching Heap Fix to existing runner
   bash install.sh --runner PATH   Choose the installed runner for Heap Fix explicitly
   bash install.sh --mode MODE     Use auto, native, or flatpak Lutris selection
@@ -42,6 +44,7 @@ while (( $# )); do
     --dry-run) ACTION='dry-run'; shift ;;
     --heap-only) ACTION='heap-only'; shift ;;
     --check) ACTION='check'; shift ;;
+    --verify-release) ACTION='verify-release'; shift ;;
     --mode) (( $# >= 2 )) || die '--mode requires a value'; MODE="$2"; shift 2 ;;
     --runner) (( $# >= 2 )) || die '--runner requires a path'; HEAP_RUNNER="$2"; shift 2 ;;
     *) die "Unknown option: $1 (try --help)" ;;
@@ -64,7 +67,7 @@ printf '%s\n' \
 
 [[ "$ACTION" == 'dry-run' ]] && { say 'Dry run complete. No files downloaded or changed.'; exit 0; }
 [[ "$(uname -s)" == Linux && "$(uname -m)" == x86_64 ]] || die 'Linux x86_64 is required.'
-[[ "$ACTION" == 'check' || "${EUID:-$(id -u)}" != 0 ]] || die 'Do not run as root or with sudo.'
+[[ "$ACTION" == 'check' || "$ACTION" == 'verify-release' || "${EUID:-$(id -u)}" != 0 ]] || die 'Do not run as root or with sudo.'
 command -v python3 >/dev/null 2>&1 || die 'Python 3 is required.'
 
 run_heap() {
@@ -90,20 +93,26 @@ fi
 
 # Preserve existing installations: the v0.2 setup helper normally replaces
 # an existing runner, which could erase a working hand-patched ntdll.dll.
+if [[ "$ACTION" == install ]]; then
 for root in "${XDG_DATA_HOME:-$HOME/.local/share}/lutris/runners/wine" \
             "$HOME/.var/app/net.lutris.Lutris/data/lutris/runners/wine"; do
   [[ ! -e "$root/$RUNNER_NAME" && ! -L "$root/$RUNNER_NAME" ]] ||
     die "Existing $RUNNER_NAME detected in $root. Keeping it unchanged. For a compatible existing install, use --heap-only."
 done
+fi
 
 for cmd in sha256sum awk tail tar mktemp; do
   command -v "$cmd" >/dev/null 2>&1 || die "Missing command: $cmd"
 done
 command -v curl >/dev/null 2>&1 || command -v wget >/dev/null 2>&1 || die 'curl or wget is required.'
 
-printf '\nBefore continuing: completely close Lutris, the game, and its patcher.\n'
-read -r -p 'Proceed with installation? [y/N] ' answer
-case "$answer" in y|Y|yes|YES) ;; *) say 'Cancelled; no changes made.'; exit 0 ;; esac
+if [[ "$ACTION" == install ]]; then
+  printf '\nBefore continuing: completely close Lutris, the game, and its patcher.\n'
+  read -r -p 'Proceed with installation? [y/N] ' answer
+  case "$answer" in y|Y|yes|YES) ;; *) say 'Cancelled; no changes made.'; exit 0 ;; esac
+else
+  say 'Read-only release verification selected: no Lutris/runner/prefix changes.'
+fi
 
 TMP="$(mktemp -d "${TMPDIR:-/tmp}/jinteia-source-installer.XXXXXXXX")"
 trap 'rm -rf -- "$TMP"' EXIT
@@ -111,7 +120,7 @@ trap 'rm -rf -- "$TMP"' EXIT
 download="$TMP/$ASSET"
 say 'Downloading v0.2 release package (~540 MB)'
 if command -v curl >/dev/null 2>&1; then
-  curl --fail --location --retry 2 --proto '=https' --tlsv1.2 --output "$download" "$URL"
+  curl --fail --location --retry 2 --proto '=https' --proto-redir '=https' --tlsv1.2 --output "$download" "$URL"
 else
   wget --https-only --output-document="$download" "$URL"
 fi
@@ -127,6 +136,21 @@ runner_archive="$TMP/$RUNNER_NAME.tar.gz"
 say 'Extracting verified runner payload without running the .run wrapper'
 tail -n +"$line" "$download" | tar -xzOf - "payload/$RUNNER_NAME.tar.gz" > "$runner_archive" || die 'Cannot locate the expected nested runner archive.'
 [[ -s "$runner_archive" ]] || die 'Empty runner archive.'
+
+if [[ "$ACTION" == 'verify-release' ]]; then
+  say 'Checking original 64-bit DLL inside verified release'
+  member="$(tar -tzf "$runner_archive" | awk -v p="$RUNNER_NAME/files/lib/wine/x86_64-windows/ntdll.dll" '($0 == p || $0 == "./" p) && !found { print; found=1 }')"
+  [[ -n "$member" ]] || die 'The released runner archive contains no matching 64-bit DLL path.'
+  actual_dll_sha="$(tar -xzOf "$runner_archive" "$member" | sha256sum | awk '{print $1}')"
+  if [[ "$actual_dll_sha" != "$EXPECTED_ORIGINAL_DLL_SHA256" ]]; then
+    printf 'Observed original DLL SHA-256: %s\n' "$actual_dll_sha" >&2
+    die 'The released runner DLL does not match the known v0.2 original. No changes made.'
+  fi
+  say 'RELEASE VERIFIED: asset checksum, nested runner archive, and original 64-bit DLL match.'
+  printf 'SHA-256: %s\nOriginal DLL SHA-256: %s\n' "$EXPECTED_SHA256" "$actual_dll_sha"
+  say 'No installer scripts, Wine runner or Heap Fix were executed.'
+  exit 0
+fi
 
 say 'Installing runner and preparing Lutris using the public setup script'
 bash "$SETUP" --runner-archive "$runner_archive" --runner-name "$RUNNER_NAME" --entry-name 'Jinteia Patcher 0.2' --mode "$MODE" --fail-if-existing-runner
